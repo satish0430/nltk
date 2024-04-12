@@ -1,6 +1,6 @@
 # Natural Language Toolkit: ASCII visualization of NLTK trees
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Andreas van Cranenburgh <A.W.vanCranenburgh@uva.nl>
 #         Peter Ljunglöf <peter.ljunglof@gu.se>
 # URL: <https://www.nltk.org/>
@@ -75,7 +75,7 @@ class TreePrettyPrinter:
             leaves = tree.leaves()
             if (
                 leaves
-                and not any(len(a) == 0 for a in tree.subtrees())
+                and all(len(a) > 0 for a in tree.subtrees())
                 and all(isinstance(a, int) for a in leaves)
             ):
                 sentence = [str(a) for a in leaves]
@@ -169,7 +169,6 @@ class TreePrettyPrinter:
                         ]
                     )
                 row = matrix[rowidx]
-                i = j = center
                 if len(children[m]) == 1:  # place unaries directly above child
                     return rowidx, next(iter(children[m]))[1]
                 elif all(
@@ -291,7 +290,7 @@ class TreePrettyPrinter:
                 matrix[rowidx][i] = ids[m]
                 nodes[ids[m]] = tree[m]
                 # add column to the set of children for its parent
-                if m != ():
+                if len(m) > 0:
                     childcols[m[:-1]].add((rowidx, i))
         assert len(positions) == 0
 

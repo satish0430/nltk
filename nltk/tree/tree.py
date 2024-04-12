@@ -1,11 +1,12 @@
 # Natural Language Toolkit: Text Trees
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 #         Steven Bird <stevenbird1@gmail.com>
 #         Peter Ljunglöf <peter.ljunglof@gu.se>
 #         Nathan Bodenstab <bodenstab@cslu.ogi.edu> (tree transforms)
 #         Eric Kafe <kafe.eric@gmail.com> (Tree.fromlist())
+#         Mohaned mashaly<mohaned.mashaly12@gmail.com> (Deprecating methods)
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 
@@ -15,9 +16,9 @@ syntax trees and morphological trees.
 """
 
 import re
-import sys
 
 from nltk.grammar import Nonterminal, Production
+from nltk.internals import deprecated
 
 ######################################################################
 ## Trees
@@ -200,14 +201,13 @@ class Tree(list):
     # ////////////////////////////////////////////////////////////
     # Basic tree operations
     # ////////////////////////////////////////////////////////////
-
+    @deprecated("Use label() instead")
     def _get_node(self):
         """Outdated method to access the node value; use the label() method instead."""
-        raise NotImplementedError("Use label() to access a node label.")
 
+    @deprecated("Use set_label() instead")
     def _set_node(self, value):
         """Outdated method to set the node value; use the set_label() method instead."""
-        raise NotImplementedError("Use set_label() method to set a node label.")
 
     node = property(_get_node, _set_node)
 
@@ -646,9 +646,9 @@ class Tree(list):
         open_b, close_b = brackets
         open_pattern, close_pattern = (re.escape(open_b), re.escape(close_b))
         if node_pattern is None:
-            node_pattern = fr"[^\s{open_pattern}{close_pattern}]+"
+            node_pattern = rf"[^\s{open_pattern}{close_pattern}]+"
         if leaf_pattern is None:
-            leaf_pattern = fr"[^\s{open_pattern}{close_pattern}]+"
+            leaf_pattern = rf"[^\s{open_pattern}{close_pattern}]+"
         token_re = re.compile(
             r"%s\s*(%s)?|%s|(%s)"
             % (open_pattern, node_pattern, close_pattern, leaf_pattern)

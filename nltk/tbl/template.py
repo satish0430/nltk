@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Transformation-based learning
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Marcus Uneson <marcus.uneson@gmail.com>
 #   based on previous (nltk2) version by
 #   Christopher Maloof, Edward Loper, Steven Bird
@@ -76,7 +76,6 @@ class Template(BrillTemplateI):
     # _ids = it.count(0)
 
     def __init__(self, *features):
-
         """
         Construct a Template for generating Rules.
 
@@ -202,7 +201,6 @@ class Template(BrillTemplateI):
 
     @classmethod
     def expand(cls, featurelists, combinations=None, skipintersecting=True):
-
         """
         Factory method to mass generate Templates from a list L of lists of  Features.
 

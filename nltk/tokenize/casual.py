@@ -1,7 +1,7 @@
 #
 # Natural Language Toolkit: Twitter Tokenizer
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Christopher Potts <cgpotts@stanford.edu>
 #         Ewan Klein <ewan@inf.ed.ac.uk> (modifications)
 #         Pierpaolo Pantone <> (modifications)
@@ -28,16 +28,16 @@ domains and tasks. The basic logic is this:
 
 4. When instantiating Tokenizer objects, there are several options:
     * preserve_case. By default, it is set to True. If it is set to
-        False, then the tokenizer will downcase everything except for
-        emoticons.
+      False, then the tokenizer will downcase everything except for
+      emoticons.
     * reduce_len. By default, it is set to False. It specifies whether
-        to replace repeated character sequences of length 3 or greater
-        with sequences of length 3.
+      to replace repeated character sequences of length 3 or greater
+      with sequences of length 3.
     * strip_handles. By default, it is set to False. It specifies
-        whether to remove Twitter handles of text used in the
-        `tokenize` method.
+      whether to remove Twitter handles of text used in the
+      `tokenize` method.
     * match_phone_numbers. By default, it is set to True. It indicates
-        whether the `tokenize` method should look for phone numbers.
+      whether the `tokenize` method should look for phone numbers.
 """
 
 
@@ -47,6 +47,8 @@ import html
 from typing import List
 
 import regex  # https://github.com/nltk/nltk/issues/2409
+
+from nltk.tokenize.api import TokenizerI
 
 ######################################################################
 # The following strings are components in the regular expression
@@ -125,6 +127,29 @@ URLS = r"""			# Capture 1: entire matched URL
   )
 """
 
+# emoji flag sequence
+# https://en.wikipedia.org/wiki/Regional_indicator_symbol
+# For regex simplicity, include all possible enclosed letter pairs,
+# not the ISO subset of two-letter regional indicator symbols.
+# See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Current_codes
+# Future regional flag support may be handled with the regex for
+# U+1F3F4 🏴 followed by emoji tag sequences:
+# r'\U0001F3F4[\U000E0000-\U000E007E]{5}\U000E007F'
+FLAGS = r"""
+  (?:
+    [\U0001F1E6-\U0001F1FF]{2}  # all enclosed letter pairs
+    |
+    # English flag
+    \U0001F3F4\U000E0067\U000E0062\U000E0065\U000E006e\U000E0067\U000E007F
+    |
+    # Scottish flag
+    \U0001F3F4\U000E0067\U000E0062\U000E0073\U000E0063\U000E0074\U000E007F
+    |
+    # For Wales? Why Richard, it profit a man nothing to give his soul for the whole world … but for Wales!
+    \U0001F3F4\U000E0067\U000E0062\U000E0077\U000E006C\U000E0073\U000E007F
+  )
+"""
+
 # Regex for recognizing phone numbers:
 PHONE_REGEX = r"""
     (?:
@@ -163,6 +188,8 @@ REGEXPS = (
         |
         [\U0001F3FB-\U0001F3FF]
     )""",
+    # flags
+    FLAGS,
     # Remaining word types:
     r"""
     (?:[^\W\d_](?:[^\W\d_]|['\-_])+[^\W\d_]) # Words with apostrophes or dashes.
@@ -276,16 +303,16 @@ def _replace_html_entities(text, keep=(), remove_illegal=True, encoding="utf-8")
 ######################################################################
 
 
-class TweetTokenizer:
+class TweetTokenizer(TokenizerI):
     r"""
     Tokenizer for tweets.
 
         >>> from nltk.tokenize import TweetTokenizer
         >>> tknzr = TweetTokenizer()
         >>> s0 = "This is a cooool #dummysmiley: :-) :-P <3 and some arrows < > -> <--"
-        >>> tknzr.tokenize(s0)
-        ['This', 'is', 'a', 'cooool', '#dummysmiley', ':', ':-)', ':-P', '<3'
-        , 'and', 'some', 'arrows', '<', '>', '->', '<--']
+        >>> tknzr.tokenize(s0) # doctest: +NORMALIZE_WHITESPACE
+        ['This', 'is', 'a', 'cooool', '#dummysmiley', ':', ':-)', ':-P', '<3', 'and', 'some', 'arrows', '<', '>', '->',
+         '<--']
 
     Examples using `strip_handles` and `reduce_len parameters`:
 

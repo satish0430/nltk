@@ -1,7 +1,7 @@
 #
 # Natural Language Toolkit: Sentiment Analyzer
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Pierpaolo Pantone <24alsecondo@gmail.com>
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
@@ -197,7 +197,7 @@ def extract_bigram_feats(document, bigrams):
 
     >>> bigrams = [('global', 'warming'), ('police', 'prevented'), ('love', 'you')]
     >>> document = 'ice is melting due to global warming'.split()
-    >>> sorted(extract_bigram_feats(document, bigrams).items())
+    >>> sorted(extract_bigram_feats(document, bigrams).items()) # doctest: +NORMALIZE_WHITESPACE
     [('contains(global - warming)', True), ('contains(love - you)', False),
     ('contains(police - prevented)', False)]
     """

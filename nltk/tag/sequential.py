@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Sequential Backoff Taggers
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 #         Steven Bird <stevenbird1@gmail.com> (minor additions)
 #         Tiago Tresoldi <tresoldi@users.sf.net> (original affix tagger)
@@ -337,7 +337,7 @@ class UnigramTagger(NgramTagger):
         >>> test_sent = brown.sents(categories='news')[0]
         >>> unigram_tagger = UnigramTagger(brown.tagged_sents(categories='news')[:500])
         >>> for tok, tag in unigram_tagger.tag(test_sent):
-        ...     print("({}, {}), ".format(tok, tag))
+        ...     print("({}, {}), ".format(tok, tag)) # doctest: +NORMALIZE_WHITESPACE
         (The, AT), (Fulton, NP-TL), (County, NN-TL), (Grand, JJ-TL),
         (Jury, NN-TL), (said, VBD), (Friday, NR), (an, AT),
         (investigation, NN), (of, IN), (Atlanta's, NP$), (recent, JJ),
@@ -450,7 +450,6 @@ class AffixTagger(ContextTagger):
         cutoff=0,
         verbose=False,
     ):
-
         self._check_params(train, model)
 
         super().__init__(model, backoff)
@@ -491,7 +490,7 @@ class AffixTagger(ContextTagger):
 
 @jsontags.register_tag
 class RegexpTagger(SequentialBackoffTagger):
-    """
+    r"""
     Regular Expression Tagger
 
     The RegexpTagger assigns tags to tokens by comparing their
@@ -503,7 +502,7 @@ class RegexpTagger(SequentialBackoffTagger):
         >>> from nltk.tag import RegexpTagger
         >>> test_sent = brown.sents(categories='news')[0]
         >>> regexp_tagger = RegexpTagger(
-        ...     [(r'^-?[0-9]+(.[0-9]+)?$', 'CD'),   # cardinal numbers
+        ...     [(r'^-?[0-9]+(\.[0-9]+)?$', 'CD'),  # cardinal numbers
         ...      (r'(The|the|A|a|An|an)$', 'AT'),   # articles
         ...      (r'.*able$', 'JJ'),                # adjectives
         ...      (r'.*ness$', 'NN'),                # nouns formed from adjectives
@@ -515,7 +514,7 @@ class RegexpTagger(SequentialBackoffTagger):
         ... ])
         >>> regexp_tagger
         <Regexp Tagger: size=9>
-        >>> regexp_tagger.tag(test_sent)
+        >>> regexp_tagger.tag(test_sent) # doctest: +NORMALIZE_WHITESPACE
         [('The', 'AT'), ('Fulton', 'NN'), ('County', 'NN'), ('Grand', 'NN'), ('Jury', 'NN'),
         ('said', 'NN'), ('Friday', 'NN'), ('an', 'AT'), ('investigation', 'NN'), ('of', 'NN'),
         ("Atlanta's", 'NNS'), ('recent', 'NN'), ('primary', 'NN'), ('election', 'NN'),

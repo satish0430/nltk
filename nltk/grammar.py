@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Context Free Grammars
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Steven Bird <stevenbird1@gmail.com>
 #         Edward Loper <edloper@gmail.com>
 #         Jason Narad <jason.narad@gmail.com>
@@ -70,6 +70,7 @@ with the right hand side (*rhs*) in a tree (*tree*) is known as
 """
 import itertools
 import re
+from collections import deque
 from functools import total_ordering
 
 from nltk.featstruct import SLASH, TYPE, FeatDict, FeatStruct, FeatStructReader
@@ -1351,22 +1352,23 @@ class DependencyGrammar:
                     return True
         return False
 
-    def __contains__(self, head, mod):
+    def __contains__(self, head_mod):
         """
         Return True if this ``DependencyGrammar`` contains a
         ``DependencyProduction`` mapping 'head' to 'mod'.
 
-        :param head: A head word.
-        :type head: str
-        :param mod: A mod word, to test as a modifier of 'head'.
-        :type mod: str
+        :param head_mod: A tuple of a head word and a mod word,
+            to test as a modifier of 'head'.
+        :type head: Tuple[str, str]
         :rtype: bool
         """
-        for production in self._productions:
-            for possibleMod in production._rhs:
-                if production._lhs == head and possibleMod == mod:
-                    return True
-        return False
+        try:
+            head, mod = head_mod
+        except ValueError as e:
+            raise ValueError(
+                "Must use a tuple of strings, e.g. `('price', 'of') in grammar`"
+            ) from e
+        return self.contains(head, mod)
 
     #   # should be rewritten, the set comp won't work in all comparisons
     # def contains_exactly(self, head, modlist):
@@ -1494,7 +1496,7 @@ class PCFG(CFG):
         probs = {}
         for production in productions:
             probs[production.lhs()] = probs.get(production.lhs(), 0) + production.prob()
-        for (lhs, p) in probs.items():
+        for lhs, p in probs.items():
             if not ((1 - PCFG.EPSILON) < p < (1 + PCFG.EPSILON)):
                 raise ValueError("Productions for %r do not sum to 1" % lhs)
 

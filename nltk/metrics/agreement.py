@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Agreement Metrics
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Tom Lippincott <tom@cs.columbia.edu>
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
@@ -50,10 +50,10 @@ Expected results from the Artstein and Poesio survey paper:
     >>> t = AnnotationTask(data=[x.split() for x in open(os.path.join(os.path.dirname(__file__), "artstein_poesio_example.txt"))])
     >>> t.avg_Ao()
     0.88
-    >>> t.pi()
-    0.7995322418977615...
-    >>> t.S()
-    0.8199999999999998...
+    >>> round(t.pi(), 5)
+    0.79953
+    >>> round(t.S(), 2)
+    0.82
 
     This would have returned a wrong value (0.0) in @785fb79 as coders are in
     the wrong order. Subsequently, all values for pi(), S(), and kappa() would
@@ -248,7 +248,7 @@ class AnnotationTask:
         total = 0.0
         label_freqs = FreqDist(x["labels"] for x in self.data)
         for k, f in label_freqs.items():
-            total += f ** 2
+            total += f**2
         Ae = total / ((len(self.I) * len(self.C)) ** 2)
         return (self.avg_Ao() - Ae) / (1 - Ae)
 
@@ -345,7 +345,6 @@ class AnnotationTask:
 
 
 if __name__ == "__main__":
-
     import optparse
     import re
 

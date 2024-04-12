@@ -1,4 +1,4 @@
-.. Copyright (C) 2001-2021 NLTK Project
+.. Copyright (C) 2001-2023 NLTK Project
 .. For license information, see LICENSE.TXT
 
 ===========
@@ -139,7 +139,7 @@ And now we can test the estimators
 
     >>> def train_and_test(est):
     ...     hmm = trainer.train_supervised(train_corpus, estimator=est)
-    ...     print('%.2f%%' % (100 * hmm.evaluate(test_corpus)))
+    ...     print('%.2f%%' % (100 * hmm.accuracy(test_corpus)))
 
 Maximum Likelihood Estimation
 -----------------------------

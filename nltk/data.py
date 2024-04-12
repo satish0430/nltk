@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Utility functions
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
@@ -9,8 +9,8 @@
 Functions to find and load NLTK resource files, such as corpora,
 grammars, and saved processing objects.  Resource files are identified
 using URLs, such as ``nltk:corpora/abc/rural.txt`` or
-``http://nltk.org/sample/toy.cfg``.  The following URL protocols are
-supported:
+``https://raw.githubusercontent.com/nltk/nltk/develop/nltk/test/toy.cfg``.
+The following URL protocols are supported:
 
   - ``file:path``: Specifies the file whose path is *path*.
     Both relative and absolute paths may be used.
@@ -395,7 +395,6 @@ class ZipFilePathPointer(PathPointer):
 
         # Check that the entry exists:
         if entry:
-
             # Normalize the entry string, it should be relative:
             entry = normalize_resource_name(entry, True, "/").lstrip("/")
 
@@ -1411,7 +1410,7 @@ class SeekableUnicodeStreamReader:
             self.stream.seek(0)
 
             # Check for each possible BOM.
-            for (bom, new_encoding) in bom_info:
+            for bom, new_encoding in bom_info:
                 if bytes.startswith(bom):
                     if new_encoding:
                         self.encoding = new_encoding

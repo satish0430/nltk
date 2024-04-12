@@ -111,6 +111,7 @@
 - Tom Lippincott
 - Peter Ljunglöf
 - Alex Louden
+- David Lukeš
 - Joseph Lynch
 - Nitin Madnani
 - Felipe Madrigal
@@ -128,6 +129,7 @@
 - David McClosky
 - Xinfan Meng
 - Dmitrijs Milajevs
+- Matt Miller
 - Margaret Mitchell
 - Tomonori Nagano
 - Jason Narad
@@ -202,6 +204,7 @@
 - Álvaro Justen <https://github.com/turicas>
 - bjut-hz
 - Sergio Oller
+- Izam Mohammed <https://github.com/izam-mohammed>
 - Will Monroe
 - Elijah Rippeth
 - Emil Manukyan
@@ -287,6 +290,19 @@
 - Ahmet Yildirim <https://github.com/RnDevelover>
 - Yuta Nakamura <https://github.com/yutanakamura-tky>
 - Adam Hawley <https://github.com/adamjhawley>
+- Panagiotis Simakis <https://github.com/sp1thas>
+- Richard Wang <https://github.com/richarddwang>
+- Alexandre Perez-Lebel <https://github.com/aperezlebel>
+- Fernando Carranza <https://github.com/fernandocar86>
+- Martin Kondratzky <https://github.com/martinkondra>
+- Heungson Lee <https://github.com/heungson>
+- M.K. Pawelkiewicz <https://github.com/hamiltonianflow>
+- Steven Thomas Smith <https://github.com/essandess>
+- Jan Lennartz <https://github.com/Madnex>
+- Tim Sockel <https://github.com/TiMauzi>
+- Akihiro Yamazaki <https://github.com/zakkie>
+- Ron Urbach <https://github.com/sharpblade4>
+- Vivek Kalyan <https://github.com/vivekkalyan>
 
 ## Others whose work we've taken and included in NLTK, but who didn't directly contribute it:
 

@@ -2,7 +2,7 @@
 #
 # Author: David McClosky <dmcc@bigasterisk.com>
 #
-# Copyright (C) 2001-2021 NLTK Project
+# Copyright (C) 2001-2023 NLTK Project
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 
@@ -90,7 +90,6 @@ try:
     def _ensure_bllip_import_or_error():
         pass
 
-
 except ImportError as ie:
 
     def _ensure_bllip_import_or_error(ie=ie):
@@ -100,11 +99,11 @@ except ImportError as ie:
 def _ensure_ascii(words):
     try:
         for i, word in enumerate(words):
-            word.decode("ascii")
-    except UnicodeDecodeError as e:
+            word.encode("ascii")
+    except UnicodeEncodeError as e:
         raise ValueError(
-            "Token %d (%r) is non-ASCII. BLLIP Parser "
-            "currently doesn't support non-ASCII inputs." % (i, word)
+            f"Token {i} ({word!r}) is non-ASCII. BLLIP Parser "
+            "currently doesn't support non-ASCII inputs."
         ) from e
 
 
@@ -163,7 +162,7 @@ class BllipParser(ParserI):
             self.rrp.load_reranker_model(
                 features_filename=reranker_features,
                 weights_filename=reranker_weights,
-                **reranker_options
+                **reranker_options,
             )
 
     def parse(self, sentence):
