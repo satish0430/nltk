@@ -164,6 +164,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 import threading
 import time
@@ -704,7 +705,9 @@ class Downloader:
         yield ProgressMessage(5)
         try:
             infile = urlopen(info.url)
-            with open(filepath, "wb") as outfile:
+            with tempfile.NamedTemporaryFile(
+                "wb", dir=download_dir, delete=False
+            ) as outfile:
                 num_blocks = max(1, info.size / (1024 * 16))
                 for block in itertools.count():
                     s = infile.read(1024 * 16)  # 16k blocks.
@@ -713,6 +716,9 @@ class Downloader:
                         break
                     if block % 2 == 0:  # how often?
                         yield ProgressMessage(min(80, 5 + 75 * (block / num_blocks)))
+                outfile.flush()
+                os.fsync(outfile.fileno())
+            os.replace(outfile.name, filepath)
             infile.close()
         except OSError as e:
             yield ErrorMessage(
