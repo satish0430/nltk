@@ -62,9 +62,9 @@ class AutoLemmatizer:
 
         >>> from nltk.stem import AutoLemmatizer
         >>> auto_wnl = AutoLemmatizer()
-        >>> print(auto_wnl.lemmatize('Proverbs are short sentences drawn from long experience.'))
+        >>> print(auto_wnl.auto_lemmatize('Proverbs are short sentences drawn from long experience.'))
         ['Proverbs', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
-        >>> print(auto_wnl.lemmatize('proverbs are short sentences drawn from long experience.'))
+        >>> print(auto_wnl.auto_lemmatize('proverbs are short sentences drawn from long experience.'))
         ['proverb', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
     """
 
