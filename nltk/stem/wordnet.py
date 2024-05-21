@@ -6,7 +6,11 @@
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 
+from typing import List
+
 from nltk.corpus import wordnet as wn
+from nltk.tag import pos_tag
+from nltk.tokenize import word_tokenize
 
 
 class WordNetLemmatizer:
@@ -47,3 +51,63 @@ class WordNetLemmatizer:
 
     def __repr__(self):
         return "<WordNetLemmatizer>"
+
+
+class AutoLemmatizer:
+    """
+    Auto WordNet Lemmatizer
+
+    Lemmatize from corpus using word_tokenize, WordNet's built-in morphy function and pos_tag.
+    Returns the input word unchanged if it cannot be found in WordNet.
+
+        >>> from nltk.stem import AutoLemmatizer
+        >>> auto_wnl = AutoLemmatizer()
+        >>> print(auto_wnl.lemmatize('Proverbs are short sentences drawn from long experience.'))
+        ['Proverbs', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
+        >>> print(auto_wnl.lemmatize('proverbs are short sentences drawn from long experience.'))
+        ['proverb', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
+    """
+
+    # POS tag dict for matching with WordNet's lemmatize
+    pos_word_dict = {
+        "VBP": "v",
+        "VB": "v",
+        "VBG": "v",
+        "VBD": "v",
+        "VBN": "v",
+        "VBZ": "v",
+        "JJ": "a",
+        "JJR": "a",
+        "JJS": "a",
+        "RB": "r",
+        "RBR": "r",
+        "RBS": "r",
+        "NN": "n",
+        "NNS": "n",
+        "NNP": "n",
+        "NNPS": "n",
+    }
+
+    def auto_lemmatize(self, sentence: str) -> List:
+        """Automatically lemmatize `word` with out pos using pos_tag and WordNet's built-in morphy function.
+        Returns the input word unchanged if it cannot be found in WordNet.
+
+        :param word: The input word to lemmatize.
+        :type word: str
+        :return: The list for lemma of `word`, for automatically estimates `pos`.
+        """
+        # Tokenize the sentence
+        words = word_tokenize(sentence)
+
+        # POS tagging
+        pos_tags = pos_tag(words)
+
+        # Lemmatize the words
+        lemma_list = []
+        for i, word in enumerate(words):
+            lemmas = wn._morphy(
+                word, self.pos_word_dict.get(pos_tags[i][1], "n")
+            )  # word.lower() can be used but it is trade-off problem
+            lemma_list.append(min(lemmas, key=len) if lemmas else word)
+
+        return lemma_list

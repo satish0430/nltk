@@ -31,4 +31,4 @@ from nltk.stem.porter import PorterStemmer
 from nltk.stem.regexp import RegexpStemmer
 from nltk.stem.rslp import RSLPStemmer
 from nltk.stem.snowball import SnowballStemmer
-from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.stem.wordnet import AutoLemmatizer, WordNetLemmatizer
