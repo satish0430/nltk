@@ -61,10 +61,10 @@ class TextLemmatizer:
     Returns the input word unchanged if it cannot be found in WordNet.
 
         >>> from nltk.stem import TextLemmatizer
-        >>> auto_wnl = TextLemmatizer()
-        >>> print(auto_wnl.lemmatize('Proverbs are short sentences drawn from long experience.'))
+        >>> text_wnl = TextLemmatizer()
+        >>> print(text_wnl.lemmatize('Proverbs are short sentences drawn from long experience.'))
         ['Proverbs', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
-        >>> print(auto_wnl.lemmatize('proverbs are short sentences drawn from long experience.'))
+        >>> print(text_wnl.auto_lemmatize('proverbs are short sentences drawn from long experience.'))
         ['proverb', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
     """
 
