@@ -53,15 +53,15 @@ class WordNetLemmatizer:
         return "<WordNetLemmatizer>"
 
 
-class AutoLemmatizer:
+class TextLemmatizer:
     """
-    Auto WordNet Lemmatizer
+    WordNet Text Lemmatizer
 
     Lemmatize from corpus using word_tokenize, WordNet's built-in morphy function and pos_tag.
     Returns the input word unchanged if it cannot be found in WordNet.
 
-        >>> from nltk.stem import AutoLemmatizer
-        >>> auto_wnl = AutoLemmatizer()
+        >>> from nltk.stem import TextLemmatizer
+        >>> auto_wnl = TextLemmatizer()
         >>> print(auto_wnl.lemmatize('Proverbs are short sentences drawn from long experience.'))
         ['Proverbs', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
         >>> print(auto_wnl.lemmatize('proverbs are short sentences drawn from long experience.'))
@@ -88,7 +88,7 @@ class AutoLemmatizer:
         "NNPS": "n",
     }
 
-    def auto_lemmatize(self, sentence: str) -> List:
+    def lemmatize(self, sentence: str) -> List:
         """Automatically lemmatize `word` with out pos using pos_tag and WordNet's built-in morphy function.
         Returns the input word unchanged if it cannot be found in WordNet.
 
@@ -105,9 +105,9 @@ class AutoLemmatizer:
         # Lemmatize the words
         lemma_list = []
         for i, word in enumerate(words):
-            lemmas = wn._morphy(
+            lemma = WordNetLemmatizer().lemmatize(
                 word, self.pos_word_dict.get(pos_tags[i][1], "n")
             )  # word.lower() can be used but it is trade-off problem
-            lemma_list.append(min(lemmas, key=len) if lemmas else word)
+            lemma_list.append(lemma)
 
         return lemma_list
