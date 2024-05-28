@@ -48,9 +48,6 @@ class WordNetLemmatizer:
         lemmas = wn._morphy(word, pos)
         return min(lemmas, key=len) if lemmas else word
 
-    def __repr__(self) -> str:
-        return "<WordNetLemmatizer>"
-
     def lemmatize_text(self, text: str) -> Iterator[Tuple[str, str]]:
         """Tokenize input text, estimate the Universal Tag of each word,
         lemmatize the result and return an iterator over the (lemma, tag) tuples.
@@ -61,12 +58,11 @@ class WordNetLemmatizer:
         :return: an iterator over the estimated (lemma, tag) tuple of each word
 
         >>> from nltk.stem import WordNetLemmatizer
-        >>> from nltk.tag import tuple2str
         >>> wntl = WordNetLemmatizer().lemmatize_text
-        >>> print(' '.join([tuple2str(tup) for tup in wntl('Proverbs are short sentences drawn from long experience.')]))
-        Proverbs/NOUN be/VERB short/ADJ sentence/NOUN draw/VERB from/ADP long/ADJ experience/NOUN ./.
-        >>> print(' '.join([tuple2str(tup) for tup in wntl('proverbs are short sentences drawn from long experience.')]))
-        proverb/NOUN be/VERB short/ADJ sentence/NOUN draw/VERB from/ADP long/ADJ experience/NOUN ./.
+        >>> print([tup for tup in wntl('Proverbs are short sentences drawn from long experience.')])
+        [('Proverbs', 'NOUN'), ('be', 'VERB'), ('short', 'ADJ'), ('sentence', 'NOUN'), ('draw', 'VERB'), ('from', 'ADP'), ('long', 'ADJ'), ('experience', 'NOUN'), ('.', '.')]
+        >>> print([tup for tup in wntl('proverbs are short sentences drawn from long experience.')])
+        [('proverb', 'NOUN'), ('be', 'VERB'), ('short', 'ADJ'), ('sentence', 'NOUN'), ('draw', 'VERB'), ('from', 'ADP'), ('long', 'ADJ'), ('experience', 'NOUN'), ('.', '.')]
         """
         from nltk.tag import pos_tag
         from nltk.tokenize import word_tokenize
@@ -78,6 +74,9 @@ class WordNetLemmatizer:
             # Tokenize the input text and POS-tag each word, using Universal Tags:
             for word, tag in pos_tag(word_tokenize(text), tagset="universal")
         )
+
+    def __repr__(self) -> str:
+        return "<WordNetLemmatizer>"
 
 
 def universal_tag_to_wn_pos(tag) -> str:
