@@ -6,7 +6,7 @@
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 
-from typing import List
+from typing import Iterator, Tuple
 
 from nltk.corpus import wordnet as wn
 
@@ -15,8 +15,9 @@ class WordNetLemmatizer:
     """
     WordNet Lemmatizer
 
-    Lemmatize using WordNet's built-in morphy function.
-    Returns the input word unchanged if it cannot be found in WordNet.
+    Methods:
+       - lemmatize(word) lemmatizes a word
+       - lemmatize_text(text) tokenizes text and lemmatizes each word
     """
 
     def lemmatize(self, word: str, pos: str = "n") -> str:
@@ -31,53 +32,55 @@ class WordNetLemmatizer:
         :type pos: str
         :return: The lemma of `word`, for the given `pos`.
 
-            >>> from nltk.stem import WordNetLemmatizer
-            >>> wnl = WordNetLemmatizer()
-            >>> print(wnl.lemmatize('dogs'))
-            dog
-            >>> print(wnl.lemmatize('churches'))
-            church
-            >>> print(wnl.lemmatize('aardwolves'))
-            aardwolf
-            >>> print(wnl.lemmatize('abaci'))
-            abacus
-            >>> print(wnl.lemmatize('hardrock'))
-            hardrock
+        >>> from nltk.stem import WordNetLemmatizer
+        >>> wnl = WordNetLemmatizer()
+        >>> print(wnl.lemmatize('dogs'))
+        dog
+        >>> print(wnl.lemmatize('churches'))
+        church
+        >>> print(wnl.lemmatize('aardwolves'))
+        aardwolf
+        >>> print(wnl.lemmatize('abaci'))
+        abacus
+        >>> print(wnl.lemmatize('hardrock'))
+        hardrock
         """
         lemmas = wn._morphy(word, pos)
         return min(lemmas, key=len) if lemmas else word
 
-    def lemmatize_text(self, text: str) -> List[str]:
-        """
-        Tokenize input text, estimate the part-of-speech tag of each word,
-        and return a list of lemmas and pos tag.
+    def __repr__(self) -> str:
+        return "<WordNetLemmatizer>"
 
-        Returns each input word unchanged when it cannot be found in WordNet.
+    def lemmatize_text(self, text: str) -> Iterator[Tuple[str, str]]:
+        """Tokenize input text, estimate the Universal Tag of each word,
+        lemmatize the result and return an iterator over the (lemma, tag) tuples.
+        Returns each input word unchanged, when it cannot be found in WordNet.
 
         :param text: The input text to lemmatize.
         :type text: str
-        :return: A list with the estimated lemma and pos tag of each `word` in the input text.
+        :return: an iterator over the estimated (lemma, tag) tuple of each word
 
-            >>> from nltk.stem import WordNetLemmatizer
-            >>> wntl = WordNetLemmatizer().lemmatize_text
-            >>> print(wntl('Proverbs are short sentences drawn from long experience.'))
-            ['Proverbs', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
-            >>> print(wntl('proverbs are short sentences drawn from long experience.'))
-            ['proverb', 'be', 'short', 'sentence', 'draw', 'from', 'long', 'experience', '.']
+        >>> from nltk.stem import WordNetLemmatizer
+        >>> from nltk.tag import tuple2str
+        >>> wntl = WordNetLemmatizer().lemmatize_text
+        >>> print(' '.join([tuple2str(tup) for tup in wntl('Proverbs are short sentences drawn from long experience.')]))
+        Proverbs/NOUN be/VERB short/ADJ sentence/NOUN draw/VERB from/ADP long/ADJ experience/NOUN ./.
+        >>> print(' '.join([tuple2str(tup) for tup in wntl('proverbs are short sentences drawn from long experience.')]))
+        proverb/NOUN be/VERB short/ADJ sentence/NOUN draw/VERB from/ADP long/ADJ experience/NOUN ./.
         """
         from nltk.tag import pos_tag
         from nltk.tokenize import word_tokenize
 
-        return [
-            # Lemmatize each POS-tagged word:
-            (self.lemmatize(word, self.tag2pos(tag)), tag)
-            # Tokenize the input text and POS tag each word:
-            for word, tag in pos_tag(word_tokenize(text))
-        ]
+        yield from (
+            # Lemmatixe each word using the WordNet Pos corresponding to its
+            # Universal tag (or 'n' when WordNet does not cover that Pos):
+            (self.lemmatize(word, universal_tag_to_wn_pos(tag) or "n"), tag)
+            # Tokenize the input text and POS-tag each word, using Universal Tags:
+            for word, tag in pos_tag(word_tokenize(text), tagset="universal")
+        )
 
-    @staticmethod
-    def tag2pos(tag):
-        return {"N": "n", "V": "v", "J": "a", "R": "r"}.get(tag[0], "n")
 
-    def __repr__(self):
-        return "<WordNetLemmatizer>"
+def universal_tag_to_wn_pos(tag) -> str:
+    """Convert Universal Tag to WordNet Part-of-speech.
+    Return None when WordNet does not cover the Pos"""
+    return {"NOUN": "n", "VERB": "v", "ADJ": "a", "ADV": "r"}.get(tag, None)
