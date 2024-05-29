@@ -59,9 +59,9 @@ class WordNetLemmatizer:
 
         >>> from nltk.stem import WordNetLemmatizer
         >>> wntl = WordNetLemmatizer().lemmatize_text
-        >>> print([tup for tup in wntl('Proverbs are short sentences drawn from long experience.')])
+        >>> print(list(wntl("Proverbs are short sentences drawn from long experience.")))
         [('Proverbs', 'NOUN'), ('be', 'VERB'), ('short', 'ADJ'), ('sentence', 'NOUN'), ('draw', 'VERB'), ('from', 'ADP'), ('long', 'ADJ'), ('experience', 'NOUN'), ('.', '.')]
-        >>> print([tup for tup in wntl('proverbs are short sentences drawn from long experience.')])
+        >>> print(list(wntl("proverbs are short sentences drawn from long experience.")))
         [('proverb', 'NOUN'), ('be', 'VERB'), ('short', 'ADJ'), ('sentence', 'NOUN'), ('draw', 'VERB'), ('from', 'ADP'), ('long', 'ADJ'), ('experience', 'NOUN'), ('.', '.')]
         """
         from nltk.tag import pos_tag
@@ -70,16 +70,10 @@ class WordNetLemmatizer:
         yield from (
             # Lemmatixe each word using the WordNet Pos corresponding to its
             # Universal tag (or 'n' when WordNet does not cover that Pos):
-            (self.lemmatize(word, universal_tag_to_wn_pos(tag) or "n"), tag)
+            (self.lemmatize(word, wn.tag2pos(tag, "universal") or "n"), tag)
             # Tokenize the input text and POS-tag each word, using Universal Tags:
-            for word, tag in pos_tag(word_tokenize(text), tagset="universal")
+            for word, tag in pos_tag(word_tokenize(text), "universal")
         )
 
     def __repr__(self) -> str:
         return "<WordNetLemmatizer>"
-
-
-def universal_tag_to_wn_pos(tag) -> str:
-    """Convert Universal Tag to WordNet Part-of-speech.
-    Return None when WordNet does not cover the Pos"""
-    return {"NOUN": "n", "VERB": "v", "ADJ": "a", "ADV": "r"}.get(tag, None)
