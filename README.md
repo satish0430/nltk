@@ -1,50 +1,80 @@
-# Natural Language Toolkit (NLTK)
-[![PyPI](https://img.shields.io/pypi/v/nltk.svg)](https://pypi.python.org/pypi/nltk)
-![CI](https://github.com/nltk/nltk/actions/workflows/ci.yaml/badge.svg?branch=develop)
+# Report for Assignment 1
 
-NLTK -- the Natural Language Toolkit -- is a suite of open source Python
-modules, data sets, and tutorials supporting research and development in Natural
-Language Processing. NLTK requires Python version 3.8, 3.9, 3.10, 3.11 or 3.12.
+## Project chosen
 
-For documentation, please visit [nltk.org](https://www.nltk.org/).
+Name:  Natural Language Toolkit (NLTK)
 
+URL: https://github.com/nltk/nltk
 
-## Contributing
+Number of lines of code and the tool used to count it: Lizard
 
-Do you want to contribute to NLTK development? Great!
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+Programming language: Python
 
-See also [how to contribute to NLTK](https://www.nltk.org/contribute.html).
+## Coverage measurement
 
+### Existing tool
+: Coverage.py
+<Inform the name of the existing tool that was executed and how it was executed>
 
-## Donate
-
-Have you found the toolkit helpful?  Please support NLTK development by donating
-to the project via PayPal, using the link on the NLTK homepage.
+<Show the coverage results provided by the existing tool with a screenshot>
 
 
-## Citing
+### Your own coverage tool
 
-If you publish work that uses NLTK, please cite the NLTK book, as follows:
+<The following is supposed to be repeated for each group member>
 
-    Bird, Steven, Edward Loper and Ewan Klein (2009).
-    Natural Language Processing with Python.  O'Reilly Media Inc.
+<Yujin Choi>
 
+<Function 1 matchBrackets>
 
-## Copyright
+<Show a patch (diff) or a link to a commit made in your forked repository that shows the instrumented code to gather coverage measurements>
 
-Copyright (C) 2001-2023 NLTK Project
-
-For license information, see [LICENSE.txt](LICENSE.txt).
-
-[AUTHORS.md](AUTHORS.md) contains a list of everyone who has contributed to NLTK.
+<Provide a screenshot of the coverage results output by the instrumentation>
 
 
-### Redistributing
 
-- NLTK source code is distributed under the Apache 2.0 License.
-- NLTK documentation is distributed under the Creative Commons
-  Attribution-Noncommercial-No Derivative Works 3.0 United States license.
-- NLTK corpora are provided under the terms given in the README file for each
-  corpus; all are redistributable and available for non-commercial use.
-- NLTK may be freely redistributed, subject to the provisions of these licenses.
+<Function 2 _get_pos>
+
+<Provide the same kind of information provided for Function 1>
+
+
+## Coverage improvement
+
+### Individual tests
+
+<The following is supposed to be repeated for each group member>
+
+<Yujin Choi>
+
+<Test 1>
+
+<Show a patch (diff) or a link to a commit made in your forked repository that shows the new/enhanced test>
+
+<Provide a screenshot of the old coverage results (the same as you already showed above)>
+
+<Provide a screenshot of the new coverage results>
+
+
+<State the coverage improvement with a number and elaborate on why the coverage is improved>
+ The main reason for the improved coverage is that I added test cases and improved existing test cases to extend them to test all conditional branches. Previously, only some branches were tested, but I added test cases that could handle all input conditions so that each branch could be executed. So, coverage of the previous version was 60%, after enhancement, I got 100% test coverage.
+
+<Test 2>
+
+<Provide the same kind of information provided for Test 1>
+
+
+<State the coverage improvement with a number and elaborate on why the coverage is improved>
+ This function also has 100% test coverage after enhancement. Because I added some test cases like the first one. Before the improvement, coverage of this function was 25%
+
+### Overall
+
+<Provide a screenshot of the old coverage results by running an existing tool (the same as you already showed above)>
+
+
+
+<Provide a screenshot of the new coverage results by running the existing tool using all test modifications made by the group>
+
+## Statement of individual contributions
+
+<Write what each group member did>
+
