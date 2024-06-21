@@ -108,8 +108,9 @@ class UndirectedFunctionApplication(UndirectedBinaryCombinator):
 
     def can_combine(self, function, argument):
         if not function.is_function():
+            print("reached 1")
             return False
-
+        print("reached 2")
         return not function.arg().can_unify(argument) is None
 
     def combine(self, function, argument):
