@@ -99,6 +99,7 @@ class BackwardCombinator(DirectedBinaryCombinator):
 
 
 class UndirectedFunctionApplication(UndirectedBinaryCombinator):
+    
     """
     Class representing function application.
     Implements rules of the form:
@@ -106,12 +107,23 @@ class UndirectedFunctionApplication(UndirectedBinaryCombinator):
     And the corresponding backwards application rule
     """
 
+    branch_coverage = {
+        "can_combine_1": False,  # if branch for not function.is_function()
+        "can_combine_2": False,  # else branch, function is a function
+    }
+
     def can_combine(self, function, argument):
         if not function.is_function():
-            print("reached 1")
+            self.branch_coverage["can_combine_1"] = True  # Mark branch as hit
             return False
-        print("reached 2")
+        else:
+            self.branch_coverage["can_combine_2"] = True  # Mark branch as hit
         return not function.arg().can_unify(argument) is None
+
+    @classmethod
+    def print_coverage(cls):
+        for branch, hit in cls.branch_coverage.items():
+            print(f"{branch} was {'hit' if hit else 'not hit'}")
 
     def combine(self, function, argument):
         if not function.is_function():
