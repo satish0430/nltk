@@ -46,10 +46,8 @@ def test_can_combine():
     not_a_function = NotAFunction(notAFunction)
     argument = 10
     if not not_a_function.is_function():
-        print('"can_combine_1" is hit')
-        print('"can_combine_1" means if branch for not function.is_function()')
+        print('can_combine_1 was hit')
     result = ufa.can_combine(not_a_function, argument)
-    print(f"Test 'function is not a function': {'Passed' if not result else 'Failed'}")
     assert not result
 
     # Test case where function is a function
@@ -57,11 +55,9 @@ def test_can_combine():
         return num*2
     mockFunction = MockFunction(functionToPass)
     if mockFunction.is_function():
-        print('"can_combine_2" is hit')
-        print('"can_combine_2" means else branch, function is a function')
+        print('can_combine_2 was hit')
     argument1 = 10
     result = ufa.can_combine(mockFunction, argument1)
-    print(f"Test 'function can unify with argument': {'Passed' if result else 'Failed'}")
     assert result
 
     # Additional test cases can be added here
