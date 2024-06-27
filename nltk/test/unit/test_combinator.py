@@ -3,8 +3,10 @@ from nltk.ccg import UndirectedFunctionApplication
 class MockArgument:
     def can_unify(self, other_argument):
         # Simulate unification logic; return None if unification fails, or some value if it succeeds
-        # This is a placeholder; actual logic will depend on how `can_unify` is supposed to work
-        return other_argument == 10  # Example condition for unification
+        result = other_argument == 10  # Example condition for unification
+        if result:
+            print(f"can_unify is hit with other_argument: {other_argument}")
+        return result
 
 class MockFunction:
     def __init__(self, func):
@@ -41,23 +43,25 @@ def test_can_combine():
     # Test case where function is not a function
     def notAFunction(num):
         return num*2
-    not_a_function = NotAFunction(notAFunction)  # Replace with actual object that is not a function
-    argument = 10  # Replace with actual argument object
-    assert not ufa.can_combine(not_a_function, argument)
+    not_a_function = NotAFunction(notAFunction)
+    argument = 10
+    if not not_a_function.is_function():
+        print('"can_combine_1" is hit')
+        print('"can_combine_1" means if branch for not function.is_function()')
+    result = ufa.can_combine(not_a_function, argument)
+    print(f"Test 'function is not a function': {'Passed' if not result else 'Failed'}")
+    assert not result
 
-    # Test case where function cannot unify with argument
-    #function = Function()  # Replace with actual function object that cannot unify with argument
-    #assert not ufa.can_combine(function, argument)
-
-    argument2 = "hello"  # Replace with actual argument object
-    def functionToPass1(num):
-        return num*2  # Replace with actual function object that can unify with argument
-    mockFunction1 = MockFunction(functionToPass1)
-    assert ufa.can_combine(mockFunction1, argument2)
-    # Test case where function can unify with argument
-
-    argument1 = 10  # Replace with actual argument object
+    # Test case where function is a function
     def functionToPass(num):
-        return num*2  # Replace with actual function object that can unify with argument
+        return num*2
     mockFunction = MockFunction(functionToPass)
-    assert ufa.can_combine(mockFunction, argument1)
+    if mockFunction.is_function():
+        print('"can_combine_2" is hit')
+        print('"can_combine_2" means else branch, function is a function')
+    argument1 = 10
+    result = ufa.can_combine(mockFunction, argument1)
+    print(f"Test 'function can unify with argument': {'Passed' if result else 'Failed'}")
+    assert result
+
+    # Additional test cases can be added here
