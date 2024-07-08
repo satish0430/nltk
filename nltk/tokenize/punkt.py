@@ -183,7 +183,6 @@ REASON_INITIAL_WITH_SPECIAL_ORTHOGRAPHIC_HEURISTIC = (
 ######################################################################
 
 
-@jsontags.register_tag
 class PunktLanguageVars:
     """
     Stores variables, mostly regular expressions, which may be
@@ -195,8 +194,6 @@ class PunktLanguageVars:
     """
 
     __slots__ = ("_re_period_context", "_re_word_tokenizer")
-
-    json_tag = "nltk.tokenize.punkt.PunktLanguageVars"
 
     def __getstate__(self):
         # All modifications to the class are performed by inheritance.
@@ -346,28 +343,57 @@ class PunktParameters:
         return (
             list(self.collocations),
             list(self.sent_starters),
-            list(self.ortho_context.items()),
+            list(self.abbrev_types),
+            dict(self.ortho_context),
         )
 
-    def __init__(self):
-        self.abbrev_types = set()
-        """A set of word types for known abbreviations."""
+    @classmethod
+    def decode_json_obj(cls, obj):
+        collocations, sent_starters, abbrev_types, ortho_context = obj
+        return cls(
+            {tuple(x) for x in collocations},
+            set(sent_starters),
+            set(abbrev_types),
+            defaultdict(int, ortho_context),
+        )
 
-        self.collocations = set()
+    def __init__(
+        self,
+        collocations=None,
+        sent_starters=None,
+        abbrev_types=None,
+        ortho_context=None,
+    ):
+        """A set of word types for known abbreviations."""
+        if abbrev_types == None:
+            self.abbrev_types = set()
+        else:
+            self.abbrev_types = abbrev_types
+
         """A set of word type tuples for known common collocations
         where the first word ends in a period.  E.g., ('S.', 'Bach')
         is a common collocation in a text that discusses 'Johann
         S. Bach'.  These count as negative evidence for sentence
         boundaries."""
+        if collocations == None:
+            self.collocations = set()
+        else:
+            self.collocations = collocations
 
-        self.sent_starters = set()
         """A set of word types for words that often appear at the
         beginning of sentences."""
+        if sent_starters == None:
+            self.sent_starters = set()
+        else:
+            self.sent_starters = sent_starters
 
-        self.ortho_context = defaultdict(int)
         """A dictionary mapping word types to the set of orthographic
         contexts that word type appears in.  Contexts are represented
         by adding orthographic context flags: ..."""
+        if ortho_context == None:
+            self.ortho_context = defaultdict(int)
+        else:
+            self.ortho_context = ortho_context
 
     def clear_abbrevs(self):
         self.abbrev_types = set()
@@ -405,12 +431,9 @@ class PunktParameters:
 ######################################################################
 
 
-@jsontags.register_tag
 class PunktToken:
     """Stores a token of text with annotations produced during
     sentence boundary detection."""
-
-    json_tag = "nltk.tokenize.punkt.PunktToken"
 
     _properties = ["parastart", "linestart", "sentbreak", "abbr", "ellipsis"]
     __slots__ = ["tok", "type", "period_final"] + _properties
@@ -548,13 +571,10 @@ class PunktToken:
 ######################################################################
 
 
-@jsontags.register_tag
 class PunktBaseClass:
     """
     Includes common components of PunktTrainer and PunktSentenceTokenizer.
     """
-
-    json_tag = "nltk.tokenize.punkt.PunktBaseClass"
 
     def __init__(self, lang_vars=None, token_cls=PunktToken, params=None):
         if lang_vars is None:
@@ -652,11 +672,8 @@ class PunktBaseClass:
 ######################################################################
 
 
-@jsontags.register_tag
 class PunktTrainer(PunktBaseClass):
     """Learns parameters used in Punkt sentence boundary detection."""
-
-    json_tag = "nltk.tokenize.punkt.PunktTrainer"
 
     def __init__(
         self, train_text=None, verbose=False, lang_vars=None, token_cls=PunktToken
@@ -1259,7 +1276,6 @@ class PunktTrainer(PunktBaseClass):
 ######################################################################
 
 
-@jsontags.register_tag
 class PunktSentenceTokenizer(PunktBaseClass, TokenizerI):
     """
     A sentence tokenizer which uses an unsupervised algorithm to build
@@ -1268,8 +1284,6 @@ class PunktSentenceTokenizer(PunktBaseClass, TokenizerI):
     This approach has been shown to work well for many European
     languages.
     """
-
-    json_tag = "nltk.tokenize.punkt.PunktSentenceTokenizer"
 
     def __init__(
         self, train_text=None, verbose=False, lang_vars=None, token_cls=PunktToken

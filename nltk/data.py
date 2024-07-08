@@ -759,8 +759,8 @@ def load(
 
         resource_val = json.load(opened_resource)
         tag = None
-        if len(resource_val) != 1:
-            tag = next(resource_val.keys())
+        if len(resource_val) == 1:
+            tag = next(iter(resource_val.keys()))
         if tag not in json_tags:
             raise ValueError("Unknown json tag.")
     elif format == "yaml":
