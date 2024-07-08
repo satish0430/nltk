@@ -111,6 +111,7 @@ import string
 from collections import defaultdict
 from typing import Any, Dict, Iterator, List, Match, Optional, Tuple, Union
 
+from nltk import jsontags
 from nltk.probability import FreqDist
 from nltk.tokenize.api import TokenizerI
 
@@ -182,6 +183,7 @@ REASON_INITIAL_WITH_SPECIAL_ORTHOGRAPHIC_HEURISTIC = (
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktLanguageVars:
     """
     Stores variables, mostly regular expressions, which may be
@@ -193,6 +195,8 @@ class PunktLanguageVars:
     """
 
     __slots__ = ("_re_period_context", "_re_word_tokenizer")
+
+    json_tag = "nltk.tokenize.punkt.PunktLanguageVars"
 
     def __getstate__(self):
         # All modifications to the class are performed by inheritance.
@@ -332,8 +336,18 @@ def _pair_iter(iterator):
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktParameters:
     """Stores data used to perform sentence boundary detection with Punkt."""
+
+    json_tag = "nltk.tokenize.punkt.PunktParameters"
+
+    def encode_json_obj(self):
+        return (
+            list(self.collocations),
+            list(self.sent_starters),
+            list(self.ortho_context.items()),
+        )
 
     def __init__(self):
         self.abbrev_types = set()
@@ -391,9 +405,12 @@ class PunktParameters:
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktToken:
     """Stores a token of text with annotations produced during
     sentence boundary detection."""
+
+    json_tag = "nltk.tokenize.punkt.PunktToken"
 
     _properties = ["parastart", "linestart", "sentbreak", "abbr", "ellipsis"]
     __slots__ = ["tok", "type", "period_final"] + _properties
@@ -531,10 +548,13 @@ class PunktToken:
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktBaseClass:
     """
     Includes common components of PunktTrainer and PunktSentenceTokenizer.
     """
+
+    json_tag = "nltk.tokenize.punkt.PunktBaseClass"
 
     def __init__(self, lang_vars=None, token_cls=PunktToken, params=None):
         if lang_vars is None:
@@ -632,8 +652,11 @@ class PunktBaseClass:
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktTrainer(PunktBaseClass):
     """Learns parameters used in Punkt sentence boundary detection."""
+
+    json_tag = "nltk.tokenize.punkt.PunktTrainer"
 
     def __init__(
         self, train_text=None, verbose=False, lang_vars=None, token_cls=PunktToken
@@ -1236,6 +1259,7 @@ class PunktTrainer(PunktBaseClass):
 ######################################################################
 
 
+@jsontags.register_tag
 class PunktSentenceTokenizer(PunktBaseClass, TokenizerI):
     """
     A sentence tokenizer which uses an unsupervised algorithm to build
@@ -1244,6 +1268,8 @@ class PunktSentenceTokenizer(PunktBaseClass, TokenizerI):
     This approach has been shown to work well for many European
     languages.
     """
+
+    json_tag = "nltk.tokenize.punkt.PunktSentenceTokenizer"
 
     def __init__(
         self, train_text=None, verbose=False, lang_vars=None, token_cls=PunktToken
