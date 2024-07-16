@@ -75,6 +75,7 @@ def windowdiff(seg1, seg2, k, boundary="1", weighted=False):
     :type weighted: boolean
     :rtype: float
     """
+  
     if len(seg1) != len(seg2):
         raise ValueError("Segmentations have unequal length")
     if k > len(seg1):
