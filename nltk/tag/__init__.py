@@ -93,16 +93,16 @@ from nltk.tag.perceptron import PerceptronTagger
 
 from nltk.data import load, find
 
-RUS_PICKLE = (
-    "taggers/averaged_perceptron_tagger_ru/averaged_perceptron_tagger_ru.pickle"
-)
+
+PRETRAINED_TAGGERS = {
+    "rus": "taggers/averaged_perceptron_tagger_rus/",
+    "eng": "taggers/averaged_perceptron_tagger_eng/",
+}
 
 
 def _get_tagger(lang=None):
     if lang == "rus":
-        tagger = PerceptronTagger(False)
-        ap_russian_model_loc = "file:" + str(find(RUS_PICKLE))
-        tagger.load(ap_russian_model_loc)
+        tagger = PerceptronTagger(lang=lang)
     else:
         tagger = PerceptronTagger()
     return tagger

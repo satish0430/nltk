@@ -5,6 +5,7 @@
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 import math
+from math import fsum as sum
 from operator import itemgetter
 
 import pytest

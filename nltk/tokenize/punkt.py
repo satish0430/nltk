@@ -1185,7 +1185,7 @@ class PunktTrainer(PunktBaseClass):
         Returns True given a token and the token that precedes it if it
         seems clear that the token is beginning a sentence.
         """
-        # If a token (i) is preceded by a sentece break that is
+        # If a token (i) is preceded by a sentence break that is
         # not a potential ordinal number or initial, and (ii) is
         # alphabetic, then it is a a sentence-starter.
         return (

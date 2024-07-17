@@ -201,7 +201,7 @@ def ghd(ref, hyp, ins_cost=2.0, del_cost=2.0, shift_cost_coeff=1.0, boundary="1"
 
     mat = _init_mat(nhyp_bound + 1, nref_bound + 1, ins_cost, del_cost)
     _ghd_aux(mat, hyp_idx, ref_idx, ins_cost, del_cost, shift_cost_coeff)
-    return mat[-1, -1]
+    return float(mat[-1, -1])
 
 
 # Beeferman's Pk text segmentation evaluation metric
