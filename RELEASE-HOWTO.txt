@@ -2,7 +2,7 @@ Building an NLTK distribution
 ----------------------------------
 
 0. Packages required to build, test, and distribute NLTK
-   - py312-pytest py312-requests py312-sphinx 
+   - py312-pytest py312-requests py312-sphinx
    - py312-numpy py312-matplotlib py312-tkinter
    - sqlite3-tcl
    - pip install sphinxcontrib-apidoc twython
