@@ -2129,6 +2129,30 @@ class WordNetCorpusReader(CorpusReader):
         return []
 
     #############################################################
+    #  Convert Pos tags from other tagsets
+    #############################################################
+
+    def tag2pos(self, tag, tagset="en-ptb") -> str:
+        """Convert Tag, from one of the tagsets in nltk_data/taggers/universal_tagset,
+        to WordNet Part-of-speech, using Universal Tags as intermediary.
+        Return None when WordNet does not cover the Pos.
+
+        >>> from nltk.corpus import wordnet as wn
+        >>> from nltk.tag import pos_tag
+        >>> from nltk.tokenize import word_tokenize
+        >>> text="Taggers are fun"
+        >>> print([(word, tag, wn.tag2pos(tag)) for word,tag in pos_tag(word_tokenize(text))])
+        [('Taggers', 'NNS', 'n'), ('are', 'VBP', 'v'), ('fun', 'JJ', 'a')]
+        >>> print([(word, tag, wn.tag2pos(tag, 'universal')) for word,tag in pos_tag(word_tokenize(text), 'universal')])
+        [('Taggers', 'NOUN', 'n'), ('are', 'VERB', 'v'), ('fun', 'ADJ', 'a')]
+        """
+        from nltk.tag import map_tag
+
+        if tagset != "universal":
+            tag = map_tag(tagset, "universal", tag)
+        return {"NOUN": "n", "VERB": "v", "ADJ": "a", "ADV": "r"}.get(tag, None)
+
+    #############################################################
     # Create information content from corpus
     #############################################################
     def ic(self, corpus, weight_senses_equally=False, smoothing=1.0):
