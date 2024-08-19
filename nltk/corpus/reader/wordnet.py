@@ -1,6 +1,6 @@
 # Natural Language Toolkit: WordNet
 #
-# Copyright (C) 2001-2023 NLTK Project
+# Copyright (C) 2001-2024 NLTK Project
 # Author: Steven Bethard <Steven.Bethard@colorado.edu>
 #         Steven Bird <stevenbird1@gmail.com>
 #         Edward Loper <edloper@gmail.com>
@@ -588,7 +588,7 @@ class Synset(_WordNetObject):
         (from 'animal.n.01' to 'entity.n.01'):
 
         >>> dog = wn.synset('dog.n.01')
-        >>> hyp = lambda s:s.hypernyms()
+        >>> hyp = lambda s:sorted(s.hypernyms())
         >>> print(list(dog.closure(hyp)))
         [Synset('canine.n.02'), Synset('domestic_animal.n.01'), Synset('carnivore.n.01'),\
  Synset('animal.n.01'), Synset('placental.n.01'), Synset('organism.n.01'),\
@@ -619,7 +619,7 @@ class Synset(_WordNetObject):
         >>> from nltk.corpus import wordnet as wn
         >>> from pprint import pprint
         >>> computer = wn.synset('computer.n.01')
-        >>> topic = lambda s:s.topic_domains()
+        >>> topic = lambda s:sorted(s.topic_domains())
         >>> pprint(computer.tree(topic))
         [Synset('computer.n.01'), [Synset('computer_science.n.01')]]
 
@@ -629,7 +629,7 @@ class Synset(_WordNetObject):
         But keep duplicate branches (from 'animal.n.01' to 'entity.n.01'):
 
         >>> dog = wn.synset('dog.n.01')
-        >>> hyp = lambda s:s.hypernyms()
+        >>> hyp = lambda s:sorted(s.hypernyms())
         >>> pprint(dog.tree(hyp))
         [Synset('dog.n.01'),
          [Synset('canine.n.02'),
@@ -1094,14 +1094,12 @@ class Synset(_WordNetObject):
     def __repr__(self):
         return f"{type(self).__name__}('{self._name}')"
 
-    def _related(self, relation_symbol, sort=True):
+    def _related(self, relation_symbol):
         get_synset = self._wordnet_corpus_reader.synset_from_pos_and_offset
         if relation_symbol not in self._pointers:
             return []
         pointer_tuples = self._pointers[relation_symbol]
         r = [get_synset(pos, offset) for pos, offset in pointer_tuples]
-        if sort:
-            r.sort()
         return r
 
 
@@ -1423,6 +1421,7 @@ class WordNetCorpusReader(CorpusReader):
                     # map lemmas and parts of speech to synsets
                     self._lemma_pos_offset_map[lemma][pos] = synset_offsets
                     if pos == ADJ:
+                        # Duplicate all adjectives indiscriminately?:
                         self._lemma_pos_offset_map[lemma][ADJ_SAT] = synset_offsets
 
     def _load_exception_map(self):
@@ -2018,8 +2017,9 @@ class WordNetCorpusReader(CorpusReader):
         """
         Find a possible base form for the given form, with the given
         part of speech, by checking WordNet's list of exceptional
-        forms, and by recursively stripping affixes for this part of
-        speech until a form in WordNet is found.
+        forms, or by substituting suffixes for this part of speech.
+        If pos=None, try every part of speech until finding lemmas.
+        Return the first form found in WordNet, or eventually None.
 
         >>> from nltk.corpus import wordnet as wn
         >>> print(wn.morphy('dogs'))
@@ -2035,19 +2035,11 @@ class WordNetCorpusReader(CorpusReader):
         book
         >>> wn.morphy('book', wn.ADJ)
         """
-
-        if pos is None:
-            morphy = self._morphy
-            analyses = chain(a for p in POS_LIST for a in morphy(form, p))
-        else:
+        for pos in [pos] if pos else POS_LIST:
             analyses = self._morphy(form, pos, check_exceptions)
-
-        # get the first one we find
-        first = list(islice(analyses, 1))
-        if len(first) == 1:
-            return first[0]
-        else:
-            return None
+            if analyses:
+                # Stop (don't try more parts of speech):
+                return analyses[0]
 
     MORPHOLOGICAL_SUBSTITUTIONS = {
         NOUN: [
@@ -2082,8 +2074,7 @@ class WordNetCorpusReader(CorpusReader):
         # Given an original string x
         # 1. Apply rules once to the input to get y1, y2, y3, etc.
         # 2. Return all that are in the database
-        # 3. If there are no matches, keep applying rules until you either
-        #    find a match or you can't go any further
+        #    (edited by ekaf) If there are no matches return an empty list.
 
         exceptions = self._exception_map[pos]
         substitutions = self.MORPHOLOGICAL_SUBSTITUTIONS[pos]
@@ -2107,28 +2098,15 @@ class WordNetCorpusReader(CorpusReader):
                             seen.add(form)
             return result
 
-        # 0. Check the exception lists
-        if check_exceptions:
-            if form in exceptions:
-                return filter_forms([form] + exceptions[form])
-
-        # 1. Apply rules once to the input to get y1, y2, y3, etc.
-        forms = apply_rules([form])
+        if check_exceptions and form in exceptions:
+            # 0. Check the exception lists
+            forms = exceptions[form]
+        else:
+            # 1. Apply rules once to the input to get y1, y2, y3, etc.
+            forms = apply_rules([form])
 
         # 2. Return all that are in the database (and check the original too)
-        results = filter_forms([form] + forms)
-        if results:
-            return results
-
-        # 3. If there are no matches, keep applying rules until we find a match
-        while forms:
-            forms = apply_rules(forms)
-            results = filter_forms(forms)
-            if results:
-                return results
-
-        # Return an empty list if we can't find anything
-        return []
+        return filter_forms([form] + forms)
 
     #############################################################
     # Create information content from corpus

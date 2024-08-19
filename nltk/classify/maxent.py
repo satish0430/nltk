@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Maximum Entropy Classifiers
 #
-# Copyright (C) 2001-2023 NLTK Project
+# Copyright (C) 2001-2024 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 #         Dmitry Chichkov <dchichkov@gmail.com> (TypedMaxentFeatureEncoding)
 # URL: <https://www.nltk.org/>
@@ -1554,6 +1554,68 @@ class TadmMaxentClassifier(MaxentClassifier):
 
         # Build the classifier
         return cls(encoding, weights)
+
+
+######################################################################
+# Load/Save Classifier Parameters as Tab-files
+######################################################################
+
+
+def load_maxent_params(tab_dir):
+    import numpy
+
+    from nltk.tabdata import MaxentDecoder
+
+    mdec = MaxentDecoder()
+
+    with open(f"{tab_dir}/weights.txt") as f:
+        wgt = numpy.array(list(map(numpy.float64, mdec.txt2list(f))))
+
+    with open(f"{tab_dir}/mapping.tab") as f:
+        mpg = mdec.tupkey2dict(f)
+
+    with open(f"{tab_dir}/labels.txt") as f:
+        lab = mdec.txt2list(f)
+
+    with open(f"{tab_dir}/alwayson.tab") as f:
+        aon = mdec.tab2ivdict(f)
+
+    return wgt, mpg, lab, aon
+
+
+def save_maxent_params(wgt, mpg, lab, aon, tab_dir="/tmp"):
+
+    from os import mkdir
+    from os.path import isdir
+
+    from nltk.tabdata import MaxentEncoder
+
+    menc = MaxentEncoder()
+    if not isdir(tab_dir):
+        mkdir(tab_dir)
+
+    print(f"Saving Maxent parameters in {tab_dir}")
+
+    with open(f"{tab_dir}/weights.txt", "w") as f:
+        f.write(f"{menc.list2txt(map(repr, wgt.tolist()))}")
+    with open(f"{tab_dir}/mapping.tab", "w") as f:
+        f.write(f"{menc.tupdict2tab(mpg)}")
+    with open(f"{tab_dir}/labels.txt", "w") as f:
+        f.write(f"{menc.list2txt(lab)}")
+    with open(f"{tab_dir}/alwayson.tab", "w") as f:
+        f.write(f"{menc.ivdict2tab(aon)}")
+
+
+def maxent_pos_tagger():
+    from nltk.data import find
+    from nltk.tag.sequential import ClassifierBasedPOSTagger
+
+    tab_dir = find("taggers/maxent_treebank_pos_tagger_tab/english")
+    wgt, mpg, lab, aon = load_maxent_params(tab_dir)
+    mc = MaxentClassifier(
+        BinaryMaxentFeatureEncoding(lab, mpg, alwayson_features=aon), wgt
+    )
+    return ClassifierBasedPOSTagger(classifier=mc)
 
 
 ######################################################################

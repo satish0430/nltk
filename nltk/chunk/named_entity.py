@@ -1,7 +1,8 @@
 # Natural Language Toolkit: Chunk parsing API
 #
-# Copyright (C) 2001-2023 NLTK Project
+# Copyright (C) 2001-2024 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
+#         Eric Kafe <kafe.eric@gmail.com> (tab-format models)
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
 
@@ -10,7 +11,6 @@ Named entity chunker
 """
 
 import os
-import pickle
 import re
 from xml.etree import ElementTree as ET
 
@@ -33,14 +33,21 @@ class NEChunkParserTagger(ClassifierBasedTagger):
     The IOB tagger used by the chunk parser.
     """
 
-    def __init__(self, train):
+    def __init__(self, train=None, classifier=None):
         ClassifierBasedTagger.__init__(
-            self, train=train, classifier_builder=self._classifier_builder
+            self,
+            train=train,
+            classifier_builder=self._classifier_builder,
+            classifier=classifier,
         )
 
     def _classifier_builder(self, train):
         return MaxentClassifier.train(
-            train, algorithm="megam", gaussian_prior_sigma=1, trace=2
+            #          "megam" cannot be the default algorithm since it requires compiling with ocaml
+            train,
+            algorithm="iis",
+            gaussian_prior_sigma=1,
+            trace=2,
         )
 
     def _english_wordlist(self):
@@ -307,6 +314,56 @@ def cmp_chunks(correct, guessed):
             print(f"  {ct:15} {gt:15} {w}")
 
 
+# ======================================================================================
+
+
+class Maxent_NE_Chunker(NEChunkParser):
+    """
+    Expected input: list of pos-tagged words
+    """
+
+    def __init__(self, fmt="multiclass"):
+        from nltk.data import find
+
+        self._fmt = fmt
+        self._tab_dir = find(f"chunkers/maxent_ne_chunker_tab/english_ace_{fmt}/")
+        self.load_params()
+
+    def load_params(self):
+        from nltk.classify.maxent import BinaryMaxentFeatureEncoding, load_maxent_params
+
+        wgt, mpg, lab, aon = load_maxent_params(self._tab_dir)
+        mc = MaxentClassifier(
+            BinaryMaxentFeatureEncoding(lab, mpg, alwayson_features=aon), wgt
+        )
+        self._tagger = NEChunkParserTagger(classifier=mc)
+
+    def save_params(self):
+        from nltk.classify.maxent import save_maxent_params
+
+        classif = self._tagger._classifier
+        ecg = classif._encoding
+        wgt = classif._weights
+        mpg = ecg._mapping
+        lab = ecg._labels
+        aon = ecg._alwayson
+        fmt = self._fmt
+        save_maxent_params(wgt, mpg, lab, aon, tab_dir=f"/tmp/english_ace_{fmt}/")
+
+
+def build_model(fmt="multiclass"):
+    chunker = Maxent_NE_Chunker(fmt)
+    chunker.save_params()
+    return chunker
+
+
+# ======================================================================================
+
+"""
+2004 update: pickles are not supported anymore.
+
+Deprecated:
+
 def build_model(fmt="binary"):
     print("Loading training data...")
     train_paths = [
@@ -342,11 +399,9 @@ def build_model(fmt="binary"):
         pickle.dump(cp, outfile, -1)
 
     return cp
-
+"""
 
 if __name__ == "__main__":
-    # Make sure that the pickled object has the right class name:
-    from nltk.chunk.named_entity import build_model
-
+    # Make sure that the object has the right class name:
     build_model("binary")
     build_model("multiclass")

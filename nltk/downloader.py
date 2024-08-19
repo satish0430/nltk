@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Corpus & Model Downloader
 #
-# Copyright (C) 2001-2023 NLTK Project
+# Copyright (C) 2001-2024 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 # URL: <https://www.nltk.org/>
 # For license information, see LICENSE.TXT
@@ -1270,7 +1270,7 @@ class DownloaderShell:
                     print("  Cancelled!")
                 else:
                     if not new_url.startswith(("http://", "https://")):
-                        new_url = "http://" + new_url
+                        new_url = "https://" + new_url
                     try:
                         self._ds.url = new_url
                     except Exception as e:

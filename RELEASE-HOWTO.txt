@@ -1,6 +1,12 @@
 Building an NLTK distribution
 ----------------------------------
 
+0. Packages required to build, test, and distribute NLTK
+   - py312-pytest py312-requests py312-sphinx
+   - py312-numpy py312-matplotlib py312-tkinter py312-black
+   - sqlite3-tcl
+   - pip install sphinxcontrib-apidoc twython build twine pytest-mock pre-commit
+
 1. Testing
    - Check no errors are reported in our continuous integration service:
      https://github.com/nltk/nltk/actions
@@ -23,7 +29,7 @@ Building an NLTK distribution
 
 3. Build Documentation
    - Check the copyright year is correct and update if necessary
-     e.g. ./tools/global_replace.py 2001-2022 2001-2023
+     e.g. ./tools/global_replace.py 2001-2022 2001-2024
      check web/conf.py copyright line
    - Check that installation instructions are up-to-date
      (including the range of Python versions that are supported)
@@ -44,7 +50,7 @@ Building an NLTK distribution
      cd ../nltk
      git tag -a 3.X.Y -m "version 3.X.Y"
      git push --tags
-     verify that it shows up here: https://github.com/nltk/nltk/releases
+     verify that it shows up here: https://github.com/nltk/nltk/tags
      This is important for the website, as the footer will link to the
      tag with the version from web/conf.py.
 
@@ -75,5 +81,5 @@ The build requires docutils, pdflatex, python imaging library, epydoc,
   cdrtools, ImageMagick
 
   1. Check out a clean copy of the subversion repository (or make clean)
-     and install locally with sudo python setup.py install; make clean
+     and install locally with pip install; make clean
   2. make doc (slow; see doc/ for the results) and commit

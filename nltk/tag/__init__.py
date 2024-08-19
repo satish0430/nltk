@@ -1,6 +1,6 @@
 # Natural Language Toolkit: Taggers
 #
-# Copyright (C) 2001-2023 NLTK Project
+# Copyright (C) 2001-2024 NLTK Project
 # Author: Edward Loper <edloper@gmail.com>
 #         Steven Bird <stevenbird1@gmail.com> (minor additions)
 # URL: <https://www.nltk.org/>
@@ -65,6 +65,8 @@ For more information, please consult chapter 5 of the NLTK Book.
 isort:skip_file
 """
 
+import functools
+
 from nltk.tag.api import TaggerI
 from nltk.tag.util import str2tuple, tuple2str, untag
 from nltk.tag.sequential import (
@@ -100,6 +102,7 @@ PRETRAINED_TAGGERS = {
 }
 
 
+@functools.lru_cache
 def _get_tagger(lang=None):
     if lang == "rus":
         tagger = PerceptronTagger(lang=lang)

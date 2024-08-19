@@ -1,6 +1,19 @@
 Release Notes
 =============
 
+2024
+----
+
+NLTK 3.9.1 release: August 2024:
+- Fixed bug that prevented wordnet from loading
+
+NLTK 3.9 release: August 2024:
+
+- Avoid need for pickled models, resolves security vulnerability CVE-2024-39705
+- No longer sort WordNet synsets and relations (sort in calling function when required)
+- Add Python 3.12 support
+- Many other minor fixes
+
 2023
 ----
 

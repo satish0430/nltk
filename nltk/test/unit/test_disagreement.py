@@ -40,6 +40,23 @@ class TestDisagreement(unittest.TestCase):
         annotation_task = AnnotationTask(data)
         self.assertAlmostEqual(annotation_task.alpha(), -0.3333333)
 
+    def test_easy3(self):
+        """
+        If expected disagreement is 0, K-Apha should be 1.
+        """
+        data = [
+            ("coder1", "1", 1),
+            ("coder2", "1", 1),
+            ("coder1", "2", 2),
+            ("coder2", "2", 2),
+        ]
+        annotation_task = AnnotationTask(data)
+        self.assertAlmostEqual(annotation_task.alpha(), 1.0)
+
+        data = [("coder1", "1", 1), ("coder2", "1", 1), ("coder1", "2", 2)]
+        annotation_task = AnnotationTask(data)
+        self.assertAlmostEqual(annotation_task.alpha(), 1.0)
+
     def test_advanced(self):
         """
         More advanced test, based on
