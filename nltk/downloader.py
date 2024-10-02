@@ -170,6 +170,7 @@ import time
 import warnings
 import zipfile
 from hashlib import md5
+from multiprocessing import RLock
 from xml.etree import ElementTree
 
 try:
@@ -510,6 +511,10 @@ class Downloader:
         self._errors = None
         """Flag for telling if all packages got successfully downloaded or not."""
 
+        self._lock = RLock()
+
+        self.download_locks = dict()
+
         # decide where we're going to save things to.
         if self._download_dir is None:
             self._download_dir = self.default_download_dir()
@@ -639,7 +644,15 @@ class Downloader:
 
         # Handle Packages (delegate to a helper function).
         else:
-            yield from self._download_package(info, download_dir, force)
+            lock = self.download_locks.setdefault(info.id, self._lock)
+            # Check that another process is not already downloading this package:
+            if not lock._semlock._get_value():
+                while self.status(info, download_dir) != self.INSTALLED:
+                    time.sleep(1)
+                yield ErrorMessage(info, f"Another process already downloaded {info}")
+            else:
+                lock.acquire()
+                yield from self._download_package(info, download_dir, force)
 
     def _num_packages(self, item):
         if isinstance(item, Package):
@@ -737,6 +750,8 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
+        time.sleep(5)  # Block parrallel downloads of the same package
+        self.download_locks[info.id].release()
 
     def download(
         self,
