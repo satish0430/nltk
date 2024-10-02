@@ -646,7 +646,7 @@ class Downloader:
         else:
             lock = self.download_locks.setdefault(info.id, self._lock)
             # Check that another process is not already downloading this package:
-            if not lock._semlock._get_value():
+            if lock._semlock._is_zero():
                 while self.status(info, download_dir) != self.INSTALLED:
                     time.sleep(1)
                 yield ErrorMessage(info, f"Another process already downloaded {info}")
