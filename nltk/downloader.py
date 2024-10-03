@@ -404,6 +404,13 @@ class UpToDateMessage(DownloaderMessage):
         self.package = package
 
 
+class ParallelDownloadMessage(DownloaderMessage):
+    """Aother process is already downloading the package"""
+
+    def __init__(self, package):
+        self.package = package
+
+
 class StaleMessage(DownloaderMessage):
     """The package download file is out-of-date or corrupt"""
 
@@ -644,15 +651,7 @@ class Downloader:
 
         # Handle Packages (delegate to a helper function).
         else:
-            lock = self.download_locks.setdefault(info.id, self._lock)
-            # Check that another process is not already downloading this package:
-            if lock._semlock._is_zero():
-                while self.status(info, download_dir) != self.INSTALLED:
-                    time.sleep(1)
-                yield ErrorMessage(info, f"Another process already downloaded {info}")
-            else:
-                lock.acquire()
-                yield from self._download_package(info, download_dir, force)
+            yield from self._download_package(info, download_dir, force)
 
     def _num_packages(self, item):
         if isinstance(item, Package):
@@ -686,6 +685,18 @@ class Downloader:
             progress += 100 * delta
 
     def _download_package(self, info, download_dir, force):
+
+        lock = self.download_locks.setdefault(info.id, self._lock)
+
+        # Check that another process is not already downloading this package:
+        if lock._semlock._is_zero():
+            yield ParallelDownloadMessage(info)
+            while lock._semlock._is_zero():
+                time.sleep(1)
+            return
+        else:
+            lock.acquire()
+
         yield StartPackageMessage(info)
         yield ProgressMessage(0)
 
@@ -750,8 +761,7 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
-        time.sleep(5)  # Block parrallel downloads of the same package
-        self.download_locks[info.id].release()
+        lock.release()
 
     def download(
         self,
@@ -838,6 +848,12 @@ class Downloader:
                         )
                     elif isinstance(msg, UpToDateMessage):
                         show("Package %s is already up-to-date!" % msg.package.id, "  ")
+                    elif isinstance(msg, ParallelDownloadMessage):
+                        show(
+                            "Another process is already downloading Package %s"
+                            % msg.package.id,
+                            "  ",
+                        )
                     # elif isinstance(msg, StaleMessage):
                     #    show('Package %s is out-of-date or corrupt' %
                     #         msg.package.id, '  ')
