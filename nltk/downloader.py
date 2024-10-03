@@ -170,8 +170,10 @@ import time
 import warnings
 import zipfile
 from hashlib import md5
-from multiprocessing import RLock
+from multiprocessing import Manager
 from xml.etree import ElementTree
+
+download_locks = Manager().dict()
 
 try:
     TKINTER = True
@@ -405,7 +407,7 @@ class UpToDateMessage(DownloaderMessage):
 
 
 class ParallelDownloadMessage(DownloaderMessage):
-    """Aother process is already downloading the package"""
+    """Another process is already downloading the package"""
 
     def __init__(self, package):
         self.package = package
@@ -517,10 +519,6 @@ class Downloader:
 
         self._errors = None
         """Flag for telling if all packages got successfully downloaded or not."""
-
-        self._lock = RLock()
-
-        self.download_locks = dict()
 
         # decide where we're going to save things to.
         if self._download_dir is None:
@@ -686,16 +684,15 @@ class Downloader:
 
     def _download_package(self, info, download_dir, force):
 
-        lock = self.download_locks.setdefault(info.id, self._lock)
-
-        # Check that another process is not already downloading this package:
-        if lock._semlock._is_zero():
+        if info.id not in download_locks:
+            download_locks[info.id] = 1  # Emulate a "lock"
+        else:  # Another process is already downloading this package
             yield ParallelDownloadMessage(info)
-            while lock._semlock._is_zero():
+            while download_locks[
+                info.id
+            ]:  # Wait until package is downloaded and unzipped
                 time.sleep(1)
             return
-        else:
-            lock.acquire()
 
         yield StartPackageMessage(info)
         yield ProgressMessage(0)
@@ -761,7 +758,7 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
-        lock.release()
+        download_locks[info.id] = 0  # release the "lock"
 
     def download(
         self,
