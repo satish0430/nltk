@@ -683,15 +683,25 @@ class Downloader:
             progress += 100 * delta
 
     def _download_package(self, info, download_dir, force):
+        """
+        Download package unless a parallel process is already downloading it.
+        """
 
         if info.id not in download_locks:
-            download_locks[info.id] = 1  # Emulate a "lock"
+            download_locks[info.id] = True  # Emulate a "lock"
         else:  # Another process is already downloading this package
             yield ParallelDownloadMessage(info)
-            while download_locks[
-                info.id
-            ]:  # Wait until package is downloaded and unzipped
+            max_secs = int(info.size / 100000)  # Needs at least 100 kb/s download speed
+            time_out = max_secs  # Time out if download doesn't finish in max_secs
+            while (
+                time_out > 0 and download_locks[info.id]
+            ):  # Wait time_out seconds or until package is downloaded and unzipped
                 time.sleep(1)
+                time_out -= 1
+            if download_locks[info.id]:
+                yield ErrorMessage(
+                    info, f"Timed out after {max_secs} seconds waiting for {info.id}"
+                )
             return
 
         yield StartPackageMessage(info)
@@ -758,7 +768,7 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
-        download_locks[info.id] = 0  # release the "lock"
+        download_locks[info.id] = False  # release the "lock"
 
     def download(
         self,
