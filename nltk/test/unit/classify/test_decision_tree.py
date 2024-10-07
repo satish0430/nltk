@@ -1,5 +1,3 @@
-# nltk/test/unit/classify/test_decision_tree.py
-
 import unittest
 from nltk.classify import DecisionTreeClassifier
 
