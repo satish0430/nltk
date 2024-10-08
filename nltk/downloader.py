@@ -170,10 +170,7 @@ import time
 import warnings
 import zipfile
 from hashlib import md5
-from multiprocessing import Manager
 from xml.etree import ElementTree
-
-download_locks = Manager().dict()
 
 try:
     TKINTER = True
@@ -406,11 +403,12 @@ class UpToDateMessage(DownloaderMessage):
         self.package = package
 
 
-class ParallelDownloadMessage(DownloaderMessage):
+class DownloadInfoMessage(DownloaderMessage):
     """Another process is already downloading the package"""
 
-    def __init__(self, package):
+    def __init__(self, package, info=""):
         self.package = package
+        self.info = info
 
 
 class StaleMessage(DownloaderMessage):
@@ -685,23 +683,49 @@ class Downloader:
     def _download_package(self, info, download_dir, force):
         """
         Download package unless a parallel process is already downloading it.
+
+        Creates a file named {info.id}.Lock in the current working directory,
+        and removes it after the package is downloaded and unzipped.
+
+        Removes eventual stale lockfiles left over from a previous crash.
+        There should npt be any *.Lock files left after a run.
         """
 
-        if info.id not in download_locks:
-            download_locks[info.id] = True  # Emulate a "lock"
-        else:  # Another process is already downloading this package
-            yield ParallelDownloadMessage(info)
-            max_secs = int(info.size / 100000)  # Needs at least 100 kb/s download speed
-            time_out = max_secs  # Time out if download doesn't finish in max_secs
-            while (
-                time_out > 0 and download_locks[info.id]
-            ):  # Wait time_out seconds or until package is downloaded and unzipped
-                time.sleep(1)
-                time_out -= 1
-            if download_locks[info.id]:
-                yield ErrorMessage(
-                    info, f"Timed out after {max_secs} seconds waiting for {info.id}"
+        lock = f"{info.id}.Lock"
+
+        # Expect at least 10 kb/s download speed:
+        max_secs = round(info.size / 10000) + 2
+
+        # Prevent deadlock (f. ex. a stale lock from a previous crash)
+        if os.path.exists(lock):
+
+            age = time.time() - os.path.getmtime(lock)
+
+            yield DownloadInfoMessage(info, f"found locked, age:{round(age,2)} sec.")
+
+            if age > max_secs:  # if lock is too old it must be stale
+                os.remove(lock)  # remove the deadlock
+                yield DownloadInfoMessage(
+                    info, f"removed deadlock older than {max_secs} sec."
                 )
+
+        if not os.path.exists(lock):
+            yield DownloadInfoMessage(info, "creating lockfile")
+            f = open(lock, "w")  # Create a lockfile
+            f.close()
+            age = time.time() - os.path.getmtime(lock)
+            yield DownloadInfoMessage(info, f"acquired lock, age:{round(age,2)} sec.")
+        else:  # Another process is already downloading this package
+            yield DownloadInfoMessage(info, "preventing redundant download ...")
+            time_out = max_secs  # Time out if download doesn't finish in max_secs
+            while time_out > 0 and os.path.exists(
+                lock
+            ):  # Wait time_out seconds or until package is downloaded and unzipped
+                sleep_secs = 0.5
+                time.sleep(sleep_secs)
+                time_out -= sleep_secs
+            if os.path.exists(lock):
+                yield DownloadInfoMessage(info, f"timed out after {max_secs}")
             return
 
         yield StartPackageMessage(info)
@@ -768,7 +792,10 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
-        download_locks[info.id] = False  # release the "lock"
+        if os.path.exists(lock):
+            age = time.time() - os.path.getmtime(lock)
+            os.remove(lock)  # release the lock
+            yield DownloadInfoMessage(info, f"released lock, age:{round(age,2)} sec.")
 
     def download(
         self,
@@ -855,15 +882,13 @@ class Downloader:
                         )
                     elif isinstance(msg, UpToDateMessage):
                         show("Package %s is already up-to-date!" % msg.package.id, "  ")
-                    elif isinstance(msg, ParallelDownloadMessage):
+                    elif isinstance(msg, DownloadInfoMessage):
+                        show(f"Package {msg.package.id}: {msg.info}", "  ")
+                    elif isinstance(msg, StaleMessage):
                         show(
-                            "Another process is already downloading Package %s"
-                            % msg.package.id,
+                            "Package %s is out-of-date or corrupt" % msg.package.id,
                             "  ",
                         )
-                    # elif isinstance(msg, StaleMessage):
-                    #    show('Package %s is out-of-date or corrupt' %
-                    #         msg.package.id, '  ')
                     elif isinstance(msg, StartUnzipMessage):
                         show("Unzipping %s." % msg.package.filename, "  ")
 
