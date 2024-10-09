@@ -170,6 +170,7 @@ import time
 import warnings
 import zipfile
 from hashlib import md5
+from tempfile import gettempdir
 from xml.etree import ElementTree
 
 try:
@@ -404,7 +405,7 @@ class UpToDateMessage(DownloaderMessage):
 
 
 class DownloadInfoMessage(DownloaderMessage):
-    """Another process is already downloading the package"""
+    """More information about the package download"""
 
     def __init__(self, package, info=""):
         self.package = package
@@ -682,51 +683,50 @@ class Downloader:
 
     def _download_package(self, info, download_dir, force):
         """
-        Download package unless a parallel process is already downloading it.
+                Download package unless a parallel process is already downloading it.
 
-        Creates a file named {info.id}.Lock in the current working directory,
-        and removes it after the package is downloaded and unzipped.
-
-        Removes eventual stale lockfiles left over from a previous crash.
-        There should npt be any *.Lock files left after a run.
+                Creates a file named {info.id}.Lock in tempfile.gettempdir(),
+                and removes it after the package is downloaded and unzipped.
+        2
+                Removes eventual stale lockfiles left over from a previous crash.
         """
 
-        lock = f"{info.id}.Lock"
+        lock = os.path.join(gettempdir(), f"{info.id}.Lock")
 
         # Expect at least 10 kb/s download speed:
         max_secs = round(info.size / 10000) + 2
 
-        # Prevent deadlock (f. ex. a stale lock from a previous crash)
         if os.path.exists(lock):
-
             age = time.time() - os.path.getmtime(lock)
 
             yield DownloadInfoMessage(info, f"found locked, age:{round(age,2)} sec.")
 
+            # Prevent deadlock (f. ex. a stale lock from a previous crash)
             if age > max_secs:  # if lock is too old it must be stale
-                os.remove(lock)  # remove the deadlock
+                os.remove(lock)
                 yield DownloadInfoMessage(
-                    info, f"removed deadlock older than {max_secs} sec."
+                    info, f"removed stale lock (older than {max_secs} sec.)"
                 )
 
-        if not os.path.exists(lock):
-            yield DownloadInfoMessage(info, "creating lockfile")
-            f = open(lock, "w")  # Create a lockfile
-            f.close()
-            age = time.time() - os.path.getmtime(lock)
-            yield DownloadInfoMessage(info, f"acquired lock, age:{round(age,2)} sec.")
-        else:  # Another process is already downloading this package
-            yield DownloadInfoMessage(info, "preventing redundant download ...")
-            time_out = max_secs  # Time out if download doesn't finish in max_secs
-            while time_out > 0 and os.path.exists(
-                lock
-            ):  # Wait time_out seconds or until package is downloaded and unzipped
-                sleep_secs = 0.5
-                time.sleep(sleep_secs)
-                time_out -= sleep_secs
-            if os.path.exists(lock):
-                yield DownloadInfoMessage(info, f"timed out after {max_secs}")
-            return
+            else:
+                # Another process is already downloading this package
+                yield DownloadInfoMessage(info, "preventing redundant download")
+                time_out = max_secs  # Time out if download doesn't finish in max_secs
+                # Wait time_out seconds or until package is downloaded and unzipped
+                while time_out > 0 and os.path.exists(lock):
+                    sleep_secs = 0.5
+                    time.sleep(sleep_secs)
+                    time_out -= sleep_secs
+                if os.path.exists(lock):
+                    yield DownloadInfoMessage(info, f"timed out after {max_secs}")
+                return
+
+        try:
+            with open(lock, "w") as f:  # Open the lockfile
+                pass
+            yield DownloadInfoMessage(info, f"acquired lock {lock}")
+        except:
+            yield ErrorMessage(info, f"Error with lock {lock}, please delete it.")
 
         yield StartPackageMessage(info)
         yield ProgressMessage(0)
