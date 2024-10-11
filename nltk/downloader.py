@@ -455,6 +455,35 @@ class LockFile:
     used to ensure unique package downloads.
 
     Refreshes eventual stale lockfiles left over from a previous crash.
+
+    Example usage:
+    >>> import os
+    >>> from tempfile import gettempdir
+    >>> from time import sleep
+    >>> class Info:
+    ...     def __init__(self, id, size):
+    ...         self.id = id
+    ...         self.size = size
+    >>> info = Info('test_package', 1000)
+    >>> lockfile = LockFile(info)
+
+    # Test lockfile creation
+    >>> lockfile.exists()
+    False
+    >>> sum('acquired ' in  msg.info for msg in list(lockfile.acquire()))
+    1
+    >>> lockfile.exists()
+    True
+
+    # Test lockfile age
+    >>> lockfile.age() < 1  # Should be very recent
+    True
+
+    # Test lockfile release
+    >>> sum('released ' in  msg.info for msg in list(lockfile.release()))
+    1
+    >>> lockfile.exists()
+    False
     """
 
     def __init__(self, info):
