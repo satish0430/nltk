@@ -445,6 +445,87 @@ class SelectDownloadDirMessage(DownloaderMessage):
 
 
 ######################################################################
+# Lock File
+######################################################################
+
+
+class LockFile:
+    """
+    A temporary file named {info.id}.Lock in tempfile.gettempdir(),
+    used to ensure unique package downloads.
+
+    Refreshes eventual stale lockfiles left over from a previous crash.
+    """
+
+    def __init__(self, info):
+        from tempfile import gettempdir
+
+        self.info = info
+        self.path = os.path.join(gettempdir(), f"{self.info.id}.Lock")
+        # Expect at least 10 kb/s download speed:
+        self.time_out = round(self.info.size / 10000) + 2
+
+    def exists(self):
+        return os.path.exists(self.path)
+
+    def age(self):
+        return time.time() - os.path.getmtime(self.path)
+
+    def acquire(self):
+        self.is_mine = False
+        if self.exists():
+            age = self.age()
+            yield DownloadInfoMessage(
+                self.info, f"found locked, age:{round(age,2)} sec."
+            )
+
+            # Prevent deadlock (f. ex. a stale lock from a previous crash)
+            if age > self.time_out:  # if lock is too old it must be stale
+                yield DownloadInfoMessage(
+                    self.info,
+                    f"refreshing stale lock (older than {self.time_out} sec.)",
+                )
+            else:
+                # Another process is already downloading this package
+                yield from self.wait()
+                return
+        try:
+            with open(self.path, "w") as f:  # Open the lockfile
+                pass
+            self.is_mine = True
+            yield DownloadInfoMessage(self.info, f"acquired {self.path}")
+        except:
+            yield DownloadInfoMessage(
+                self.info, f"Error with lock {self.path}, consider deleting it."
+            )
+
+    def wait(self):
+        """Wait until lock is released. Time out otherwise"""
+        yield DownloadInfoMessage(self.info, f"waiting after {self.path} ...")
+        count_down = self.time_out
+        sleep_secs = 0.5
+        # Wait time_out seconds or until package is downloaded and unzipped
+        while count_down > 0 and self.exists():
+            time.sleep(sleep_secs)
+            count_down -= sleep_secs
+        if self.exists():
+            yield DownloadInfoMessage(self.info, f"timed out after {self.time_out}")
+
+    def release(self):
+        if self.exists():
+            try:
+                age = self.age()
+                os.remove(self.path)  # release the lock
+                yield DownloadInfoMessage(
+                    self.info, f"released lock, age:{round(age,2)} sec."
+                )
+            except:
+                yield ErrorMessage(self.info, f"Could not remove lock {self.path}.")
+        else:
+            yield DownloadInfoMessage(self.info, f"absent lock {self.path}")
+
+
+######################################################################
 # NLTK Data Server
 ######################################################################
 
@@ -683,50 +764,14 @@ class Downloader:
 
     def _download_package(self, info, download_dir, force):
         """
-                Download package unless a parallel process is already downloading it.
-
-                Creates a file named {info.id}.Lock in tempfile.gettempdir(),
-                and removes it after the package is downloaded and unzipped.
-        2
-                Removes eventual stale lockfiles left over from a previous crash.
+        Download package unless a parallel process is already downloading it.
+        Uses a LockFile, and removes it after the package is downloaded and unzipped.
         """
 
-        lock = os.path.join(gettempdir(), f"{info.id}.Lock")
-
-        # Expect at least 10 kb/s download speed:
-        max_secs = round(info.size / 10000) + 2
-
-        if os.path.exists(lock):
-            age = time.time() - os.path.getmtime(lock)
-
-            yield DownloadInfoMessage(info, f"found locked, age:{round(age,2)} sec.")
-
-            # Prevent deadlock (f. ex. a stale lock from a previous crash)
-            if age > max_secs:  # if lock is too old it must be stale
-                os.remove(lock)
-                yield DownloadInfoMessage(
-                    info, f"removed stale lock (older than {max_secs} sec.)"
-                )
-
-            else:
-                # Another process is already downloading this package
-                yield DownloadInfoMessage(info, "preventing redundant download")
-                time_out = max_secs  # Time out if download doesn't finish in max_secs
-                # Wait time_out seconds or until package is downloaded and unzipped
-                while time_out > 0 and os.path.exists(lock):
-                    sleep_secs = 0.5
-                    time.sleep(sleep_secs)
-                    time_out -= sleep_secs
-                if os.path.exists(lock):
-                    yield DownloadInfoMessage(info, f"timed out after {max_secs}")
-                return
-
-        try:
-            with open(lock, "w") as f:  # Open the lockfile
-                pass
-            yield DownloadInfoMessage(info, f"acquired lock {lock}")
-        except:
-            yield ErrorMessage(info, f"Error with lock {lock}, please delete it.")
+        lock = LockFile(info)
+        yield from lock.acquire()
+        if not lock.is_mine:  # Another process is already downloading this package
+            return
 
         yield StartPackageMessage(info)
         yield ProgressMessage(0)
@@ -792,10 +837,7 @@ class Downloader:
                 yield FinishUnzipMessage(info)
 
         yield FinishPackageMessage(info)
-        if os.path.exists(lock):
-            age = time.time() - os.path.getmtime(lock)
-            os.remove(lock)  # release the lock
-            yield DownloadInfoMessage(info, f"released lock, age:{round(age,2)} sec.")
+        yield from lock.release()
 
     def download(
         self,
