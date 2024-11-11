@@ -48,3 +48,17 @@ For license information, see [LICENSE.txt](LICENSE.txt).
 - NLTK corpora are provided under the terms given in the README file for each
   corpus; all are redistributable and available for non-commercial use.
 - NLTK may be freely redistributed, subject to the provisions of these licenses.
+
+
+## Movie Review Sentiment Classifier
+
+This project is a sentiment analysis tool built using NLTK's Naive Bayes Classifier. It classifies movie reviews as either positive (`pos`) or negative (`neg`) based on the presence of commonly used words in movie reviews.
+
+### Prerequisites
+
+Ensure you have the following Python packages installed:
+- `nltk`
+
+You can install NLTK using pip if it's not already installed:
+```bash
+pip install nltk
