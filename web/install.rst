@@ -10,7 +10,7 @@ Setting up a Python Environment (Mac/Unix/Windows)
 
 Please go through this guide to learn how to manage your virtual environment managers before you install NLTK,  https://docs.python-guide.org/dev/virtualenvs/
 
-Alternatively, you can use the Anaconda distribution installer that comes "batteries included" https://www.anaconda.com/distribution/
+Alternatively, you can use the Anaconda distribution installer that comes "batteries included" https://www.anaconda.com/download
 
 Mac/Unix
 --------
