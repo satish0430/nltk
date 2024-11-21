@@ -299,6 +299,7 @@
 - Steven Thomas Smith <https://github.com/essandess>
 - Jan Lennartz <https://github.com/Madnex>
 - Tim Sockel <https://github.com/TiMauzi>
+- Ikram Ul Haq <https://github.com/ulhaqi12>
 - Akihiro Yamazaki <https://github.com/zakkie>
 - Ron Urbach <https://github.com/sharpblade4>
 - Vivek Kalyan <https://github.com/vivekkalyan>
