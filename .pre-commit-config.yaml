@@ -12,10 +12,12 @@ repos:
     hooks:
     - id: pyupgrade
       args: ["--py38-plus"]
-  - repo: https://github.com/ambv/black
-    rev: 24.4.2
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.1
     hooks:
-    - id: black
+    - id: ruff
+      args: [ --fix ]
+    - id: ruff-format
   - repo: local
     hooks:
       - id: isort
