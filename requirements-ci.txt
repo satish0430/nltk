@@ -1,5 +1,5 @@
 click
-gensim>=4.0.0
+gensim@ git+https://github.com/piskvorky/gensim.git@da2f388
 markdown-it-py
 matplotlib
 mdit-plain
