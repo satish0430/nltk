@@ -26,7 +26,7 @@ def lesk(context_sentence, ambiguous_word, pos=None, synsets=None, lang="eng"):
     Usage example::
 
         >>> lesk(['I', 'went', 'to', 'the', 'bank', 'to', 'deposit', 'money', '.'], 'bank', 'n')
-        Synset('savings_bank.n.02')
+        Synset('depository_financial_institution.n.01')
 
     [1] Lesk, Michael. "Automatic sense disambiguation using machine
     readable dictionaries: how to tell a pine cone from an ice cream
@@ -45,8 +45,6 @@ def lesk(context_sentence, ambiguous_word, pos=None, synsets=None, lang="eng"):
     if not synsets:
         return None
 
-    _, sense = max(
-        (len(context.intersection(ss.definition().split())), ss) for ss in synsets
-    )
+    sense = max(synsets, key=lambda ss: len(context.intersection(ss.definition().split())))
 
     return sense
