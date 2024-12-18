@@ -171,18 +171,6 @@ import warnings
 import zipfile
 from hashlib import md5
 from xml.etree import ElementTree
-
-try:
-    TKINTER = True
-    from tkinter import Button, Canvas, Entry, Frame, IntVar, Label, Menu, TclError, Tk
-    from tkinter.messagebox import showerror
-
-    from nltk.draw.table import Table
-    from nltk.draw.util import ShowText
-except ImportError:
-    TKINTER = False
-    TclError = ValueError
-
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -1103,15 +1091,25 @@ class Downloader:
     # /////////////////////////////////////////////////////////////////
 
     def _interactive_download(self):
+        # Only import tkinter if the user has indicated that they
+        # want to draw a UI. See issue #2949 for more info.
+        if os.environ.get('NLTK_DOWNLOADER_FORCE_INTERACTIVE_SHELL', 'false').lower() == 'true':
+            DownloaderShell(self).run()
+            return
+
         # Try the GUI first; if that doesn't work, try the simple
         # interactive shell.
-        if TKINTER:
-            try:
-                DownloaderGUI(self).mainloop()
-            except TclError:
-                DownloaderShell(self).run()
-        else:
+        try:
+            import tkinter
+        except ImportError:
             DownloaderShell(self).run()
+            return
+
+        try:
+            DownloaderGUI(self).mainloop()
+        except tkinter.TclError:
+            DownloaderShell(self).run()
+
 
 
 class DownloaderShell:
@@ -1370,6 +1368,10 @@ class DownloaderGUI:
     # /////////////////////////////////////////////////////////////////
 
     def __init__(self, dataserver, use_threads=True):
+        # Only import tkinter if the user has indicated that they
+        # want to draw a UI. See issue #2949 for more info.
+        import tkinter
+        from tkinter.messagebox import showerror
         self._ds = dataserver
         self._use_threads = use_threads
 
@@ -1388,7 +1390,7 @@ class DownloaderGUI:
         self._log("NLTK Downloader Started!")
 
         # Create the main window.
-        top = self.top = Tk()
+        top = self.top = tkinter.Tk()
         top.geometry("+50+50")
         top.title("NLTK Downloader")
         top.configure(background=self._BACKDROP_COLOR[1])
@@ -1428,23 +1430,28 @@ class DownloaderGUI:
     # /////////////////////////////////////////////////////////////////
 
     def _init_widgets(self):
+        # Only import tkinter if the user has indicated that they
+        # want to draw a UI. See issue #2949 for more info.
+        import tkinter
+        from nltk.draw.table import Table
+
         # Create the top-level frame structures
-        f1 = Frame(self.top, relief="raised", border=2, padx=8, pady=0)
+        f1 = tkinter.Frame(self.top, relief="raised", border=2, padx=8, pady=0)
         f1.pack(sid="top", expand=True, fill="both")
         f1.grid_rowconfigure(2, weight=1)
         f1.grid_columnconfigure(0, weight=1)
-        Frame(f1, height=8).grid(column=0, row=0)  # spacer
-        tabframe = Frame(f1)
+        tkinter.Frame(f1, height=8).grid(column=0, row=0)  # spacer
+        tabframe = tkinter.Frame(f1)
         tabframe.grid(column=0, row=1, sticky="news")
-        tableframe = Frame(f1)
+        tableframe = tkinter.Frame(f1)
         tableframe.grid(column=0, row=2, sticky="news")
-        buttonframe = Frame(f1)
+        buttonframe = tkinter.Frame(f1)
         buttonframe.grid(column=0, row=3, sticky="news")
-        Frame(f1, height=8).grid(column=0, row=4)  # spacer
-        infoframe = Frame(f1)
+        tkinter.Frame(f1, height=8).grid(column=0, row=4)  # spacer
+        infoframe = tkinter.Frame(f1)
         infoframe.grid(column=0, row=5, sticky="news")
-        Frame(f1, height=8).grid(column=0, row=6)  # spacer
-        progressframe = Frame(
+        tkinter.Frame(f1, height=8).grid(column=0, row=6)  # spacer
+        progressframe = tkinter.Frame(
             self.top, padx=3, pady=3, background=self._BACKDROP_COLOR[1]
         )
         progressframe.pack(side="bottom", fill="x")
@@ -1455,7 +1462,7 @@ class DownloaderGUI:
         self._tab_names = ["Collections", "Corpora", "Models", "All Packages"]
         self._tabs = {}
         for i, tab in enumerate(self._tab_names):
-            label = Label(tabframe, text=tab, font=self._TAB_FONT)
+            label = tkinter.Label(tabframe, text=tab, font=self._TAB_FONT)
             label.pack(side="left", padx=((i + 1) % 2) * 10)
             label.bind("<Button-1>", self._select_tab)
             self._tabs[tab.lower()] = label
@@ -1492,8 +1499,8 @@ class DownloaderGUI:
         ]
         self._info = {}
         for i, (key, label, callback) in enumerate(info):
-            Label(infoframe, text=label).grid(column=0, row=i, sticky="e")
-            entry = Entry(
+            tkinter.Label(infoframe, text=label).grid(column=0, row=i, sticky="e")
+            entry = tkinter.Entry(
                 infoframe,
                 font="courier",
                 relief="groove",
@@ -1510,23 +1517,23 @@ class DownloaderGUI:
         self.top.bind("<Button-1>", self._info_save)
 
         # Create Download & Refresh buttons.
-        self._download_button = Button(
+        self._download_button = tkinter.Button(
             buttonframe, text="Download", command=self._download, width=8
         )
         self._download_button.pack(side="left")
-        self._refresh_button = Button(
+        self._refresh_button = tkinter.Button(
             buttonframe, text="Refresh", command=self._refresh, width=8
         )
         self._refresh_button.pack(side="right")
 
         # Create Progress bar
-        self._progresslabel = Label(
+        self._progresslabel = tkinter.Label(
             progressframe,
             text="",
             foreground=self._BACKDROP_COLOR[0],
             background=self._BACKDROP_COLOR[1],
         )
-        self._progressbar = Canvas(
+        self._progressbar = tkinter.Canvas(
             progressframe,
             width=200,
             height=16,
@@ -1539,9 +1546,11 @@ class DownloaderGUI:
         self._progresslabel.pack(side="left")
 
     def _init_menu(self):
-        menubar = Menu(self.top)
+        import tkinter
 
-        filemenu = Menu(menubar, tearoff=0)
+        menubar = tkinter.Menu(self.top)
+
+        filemenu = tkinter.Menu(menubar, tearoff=0)
         filemenu.add_command(
             label="Download", underline=0, command=self._download, accelerator="Return"
         )
@@ -1567,9 +1576,9 @@ class DownloaderGUI:
         # Create a menu to control which columns of the table are
         # shown.  n.b.: we never hide the first two columns (mark and
         # identifier).
-        viewmenu = Menu(menubar, tearoff=0)
+        viewmenu = tkinter.Menu(menubar, tearoff=0)
         for column in self._table.column_names[2:]:
-            var = IntVar(self.top)
+            var = tkinter.IntVar(self.top)
             assert column not in self._column_vars
             self._column_vars[column] = var
             if column in self.INITIAL_COLUMNS:
@@ -1582,7 +1591,7 @@ class DownloaderGUI:
         # Create a sort menu
         # [xx] this should be selectbuttons; and it should include
         # reversed sorts as options.
-        sortmenu = Menu(menubar, tearoff=0)
+        sortmenu = tkinter.Menu(menubar, tearoff=0)
         for column in self._table.column_names[1:]:
             sortmenu.add_command(
                 label="Sort by %s" % column,
@@ -1597,7 +1606,7 @@ class DownloaderGUI:
             )
         menubar.add_cascade(label="Sort", underline=0, menu=sortmenu)
 
-        helpmenu = Menu(menubar, tearoff=0)
+        helpmenu = tkinter.Menu(menubar, tearoff=0)
         helpmenu.add_command(label="About", underline=0, command=self.about)
         helpmenu.add_command(
             label="Instructions", underline=0, command=self.help, accelerator="F1"
@@ -1615,6 +1624,7 @@ class DownloaderGUI:
                 self._table.hide_column(column)
 
     def _refresh(self):
+        from tkinter.messagebox import showerror
         self._ds.clear_status_cache()
         try:
             self._fill_table()
@@ -1661,6 +1671,7 @@ class DownloaderGUI:
             return "  %s" % val
 
     def _set_url(self, url):
+        from tkinter.messagebox import showerror
         if url == self._ds.url:
             return
         try:
@@ -1671,6 +1682,7 @@ class DownloaderGUI:
         self._show_info()
 
     def _set_download_dir(self, download_dir):
+        from tkinter.messagebox import showerror
         if self._ds.download_dir == download_dir:
             return
         # check if the dir exists, and if not, ask if we should create it?
@@ -1696,6 +1708,7 @@ class DownloaderGUI:
             entry["state"] = "disabled"
 
     def _prev_tab(self, *e):
+        from tkinter.messagebox import showerror
         for i, tab in enumerate(self._tab_names):
             if tab.lower() == self._tab and i > 0:
                 self._tab = self._tab_names[i - 1].lower()
@@ -1707,6 +1720,7 @@ class DownloaderGUI:
                     showerror("Error connecting to server", e.reason)
 
     def _next_tab(self, *e):
+        from tkinter.messagebox import showerror
         for i, tab in enumerate(self._tab_names):
             if tab.lower() == self._tab and i < (len(self._tabs) - 1):
                 self._tab = self._tab_names[i + 1].lower()
@@ -1718,6 +1732,7 @@ class DownloaderGUI:
                     showerror("Error connecting to server", e.reason)
 
     def _select_tab(self, event):
+        from tkinter.messagebox import showerror
         self._tab = event.widget["text"].lower()
         try:
             self._fill_table()
@@ -1884,6 +1899,7 @@ class DownloaderGUI:
         self._table.select(delta=1)
 
     def _show_log(self):
+        from nltk.draw.util import ShowText
         text = "\n".join(self._log_messages)
         ShowText(self.top, "NLTK Downloader Log", text)
 
@@ -1966,6 +1982,7 @@ class DownloaderGUI:
     )
 
     def help(self, *e):
+        from nltk.draw.util import ShowText
         # The default font's not very legible; try using 'fixed' instead.
         try:
             ShowText(
@@ -1979,6 +1996,7 @@ class DownloaderGUI:
             ShowText(self.top, "Help: NLTK Downloader", self.HELP.strip(), width=75)
 
     def about(self, *e):
+        from nltk.draw.util import ShowText
         ABOUT = "NLTK Downloader\n" + "Written by Edward Loper"
         TITLE = "About: NLTK Downloader"
         try:
